@@ -4,7 +4,7 @@ services:
     expose:
       - "3000"
     env_file:
-      - .env.local
+      - .env.production
     restart: unless-stopped
 
   nginx:
@@ -23,7 +23,7 @@ services:
     build: .
     command: node lib/jobs/worker.js
     env_file:
-      - .env.local
+      - .env.production
     depends_on:
       - app
     restart: unless-stopped
