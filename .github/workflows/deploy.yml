@@ -2,7 +2,7 @@ name: Deploy to VPS
 
 on:
   push:
-    branches: [main]
+    branches: [master]
 
 jobs:
   deploy:
@@ -46,7 +46,7 @@ jobs:
           envs: SUPABASE_URL,SUPABASE_ANON_KEY,SUPABASE_SERVICE_ROLE_KEY,PGBOSS_DATABASE_URL
           script: |
             cd /opt/zana
-            git pull origin main
+            git pull origin master
             printf "NEXT_PUBLIC_SUPABASE_URL=%s\n" "$SUPABASE_URL" > .env.production
             printf "NEXT_PUBLIC_SUPABASE_ANON_KEY=%s\n" "$SUPABASE_ANON_KEY" >> .env.production
             printf "SUPABASE_SERVICE_ROLE_KEY=%s\n" "$SUPABASE_SERVICE_ROLE_KEY" >> .env.production
