@@ -637,7 +637,22 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      dead_letter_events: {
+        Row: {
+          id: string
+          platform: string
+          account_name: string | null
+          external_event_id: string
+          event_type: string
+          attempts: number
+          received_at: string
+          last_error: string | null
+          payload: Json
+        }
+        Insert: never
+        Update: never
+        Relationships: []
+      }
     }
     Functions: {
       create_order_transaction: {
@@ -735,6 +750,20 @@ export type Database = {
         Args: {
           p_entity_type: string
           p_stage: string
+          p_admin_id: string
+        }
+        Returns: undefined
+      }
+      replay_webhook_event: {
+        Args: {
+          p_event_id: string
+          p_admin_id: string
+        }
+        Returns: undefined
+      }
+      dismiss_webhook_event: {
+        Args: {
+          p_event_id: string
           p_admin_id: string
         }
         Returns: undefined

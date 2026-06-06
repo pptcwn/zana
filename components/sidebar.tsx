@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard, ShoppingBag, Users, Package, TrendingUp, MessageSquare,
-  Menu, X, LogOut, Workflow,
+  Menu, X, LogOut, Workflow, ShieldAlert,
 } from "lucide-react";
 import type { AdminRole, Capability } from "@/lib/auth/capabilities";
 
@@ -17,6 +17,7 @@ const NAV = [
   { href: "/customers", label: "Customers", icon: Users, capability: "customers:write" },
   { href: "/products", label: "Products", icon: Package, capability: "products:write" },
   { href: "/ad-spend", label: "Ad Spend", icon: TrendingUp, capability: "ad-spend:write" },
+  { href: "/admin/dead-letter", label: "Admin", icon: ShieldAlert, capability: "integrations:manage" },
 ];
 
 export default function Sidebar({
