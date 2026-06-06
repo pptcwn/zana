@@ -635,6 +635,41 @@ export type Database = {
           },
         ]
       }
+      customer_platforms: {
+        Row: {
+          id: string
+          customer_id: string
+          platform: string
+          handle: string | null
+          is_primary: boolean
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          customer_id: string
+          platform: string
+          handle?: string | null
+          is_primary?: boolean
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          customer_id?: string
+          platform?: string
+          handle?: string | null
+          is_primary?: boolean
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customer_platforms_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       dead_letter_events: {
@@ -705,6 +740,18 @@ export type Database = {
       get_my_admin_context: {
         Args: Record<PropertyKey, never>
         Returns: Json
+      }
+      upsert_customer_with_platforms: {
+        Args: {
+          p_customer_id: string | null
+          p_name: string
+          p_phone: string
+          p_address: string | null
+          p_notes: string | null
+          p_platforms: Json
+          p_admin_id: string
+        }
+        Returns: Database["public"]["Tables"]["customers"]["Row"]
       }
       move_order_kanban_card: {
         Args: {

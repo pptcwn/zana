@@ -21,6 +21,12 @@ type CustomerOrderSummary = {
   customer_id: string | null;
 };
 
+export type CustomerPlatform = {
+  platform: string;
+  handle: string | null;
+  is_primary: boolean;
+};
+
 export async function getCustomers(filters: CustomerFilters = {}) {
   const supabase = await createClient();
   const pagination = normalizePageRequest(filters);
@@ -59,6 +65,22 @@ export async function getCustomers(filters: CustomerFilters = {}) {
     (summaries ?? []).map((summary) => [summary.customer_id, summary])
   );
 
+  const { data: platformRows, error: platformsError } = customerIds.length > 0
+    ? await supabase
+        .from("customer_platforms")
+        .select("customer_id, platform, handle, is_primary")
+        .in("customer_id", customerIds)
+    : { data: [], error: null };
+
+  if (platformsError) throwDatabaseError(platformsError, "getCustomerPlatforms");
+
+  const platformsByCustomer = new Map<string, CustomerPlatform[]>();
+  for (const row of platformRows ?? []) {
+    const list = platformsByCustomer.get(row.customer_id) ?? [];
+    list.push({ platform: row.platform, handle: row.handle, is_primary: row.is_primary });
+    platformsByCustomer.set(row.customer_id, list);
+  }
+
   const customers = (data ?? []).map((customer) => ({
     ...customer,
     order_count: summariesByCustomer.get(customer.id)?.order_count ?? 0,
@@ -67,6 +89,9 @@ export async function getCustomers(filters: CustomerFilters = {}) {
     orders: (
       summariesByCustomer.get(customer.id)?.recent_orders ?? []
     ) as CustomerOrderSummary[],
+    platforms: (platformsByCustomer.get(customer.id) ?? [
+      { platform: customer.platform, handle: null, is_primary: true },
+    ]).sort((a, b) => Number(b.is_primary) - Number(a.is_primary)),
   }));
 
   return createPageResult(
@@ -79,13 +104,26 @@ export async function getCustomers(filters: CustomerFilters = {}) {
 
 export type CustomerRow = Awaited<ReturnType<typeof getCustomers>>["data"][number];
 
-export async function updateCustomer(id: string, input: {
-  name: string;
-  phone: string;
-  address: string | null;
-  notes: string | null;
-}) {
+export async function upsertCustomer(
+  id: string | null,
+  input: {
+    name: string;
+    phone: string;
+    address: string | null;
+    notes: string | null;
+    platforms: CustomerPlatform[];
+  },
+  adminId: string
+) {
   const supabase = await createClient();
-  const { error } = await supabase.from("customers").update(input).eq("id", id);
-  if (error) throwDatabaseError(error, "updateCustomer");
+  const { error } = await supabase.rpc("upsert_customer_with_platforms", {
+    p_customer_id: id,
+    p_name: input.name,
+    p_phone: input.phone,
+    p_address: input.address,
+    p_notes: input.notes,
+    p_platforms: input.platforms,
+    p_admin_id: adminId,
+  });
+  if (error) throwDatabaseError(error, "upsertCustomer");
 }
