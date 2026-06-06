@@ -19,10 +19,10 @@ export default function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="w-[220px] shrink-0 h-screen sticky top-0 flex flex-col border-r border-slate-100 bg-white">
+    <aside className="w-[220px] shrink-0 h-screen sticky top-0 flex flex-col border-r border-pink-100 bg-white">
       {/* Logo */}
-      <div className="px-5 py-5 border-b border-slate-100">
-        <span className="text-sm font-semibold tracking-tight text-slate-900">ZANA</span>
+      <div className="px-5 py-5 border-b border-pink-100">
+        <span className="text-sm font-semibold tracking-tight text-pink-500">🌸 ZANA</span>
       </div>
 
       {/* Nav */}
@@ -33,10 +33,10 @@ export default function Sidebar() {
             <Link
               key={href}
               href={href}
-              className={`flex items-center gap-2.5 px-3 py-2 rounded-md text-sm transition-colors ${
+              className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors ${
                 active
-                  ? "bg-slate-100 text-slate-900 font-medium"
-                  : "text-slate-500 hover:bg-slate-50 hover:text-slate-900"
+                  ? "bg-pink-50 text-pink-600 font-medium"
+                  : "text-slate-500 hover:bg-pink-50/60 hover:text-pink-500"
               }`}
             >
               <Icon size={15} strokeWidth={active ? 2 : 1.5} />
@@ -47,7 +47,7 @@ export default function Sidebar() {
       </nav>
 
       {/* User */}
-      <div className="px-3 py-3 border-t border-slate-100">
+      <div className="px-3 py-3 border-t border-pink-100">
         <form action="/api/auth/signout" method="POST">
           <button
             type="button"
@@ -57,7 +57,7 @@ export default function Sidebar() {
               await supabase.auth.signOut();
               window.location.href = "/login";
             }}
-            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-sm text-slate-400 hover:bg-slate-50 hover:text-slate-700 transition-colors text-left"
+            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-slate-400 hover:bg-pink-50 hover:text-pink-400 transition-colors text-left"
           >
             ออกจากระบบ
           </button>

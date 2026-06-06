@@ -51,38 +51,36 @@ export default function AdSpendClient({ records }: { records: AdSpendRow[] }) {
   const totalToday = records.filter((r) => r.spend_date === today).reduce((s, r) => s + r.amount, 0);
   const totalMonth = records.filter((r) => r.spend_date.startsWith(thisMonth)).reduce((s, r) => s + r.amount, 0);
 
-  const inputCls = "w-full border border-slate-200 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-slate-900 bg-white";
+  const inputCls = "w-full border border-pink-100 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-pink-300 bg-white";
 
   return (
     <div className="space-y-6 max-w-4xl">
       <div>
-        <h1 className="text-base font-semibold text-slate-900">Ad Spend</h1>
-        <p className="text-xs text-slate-400 mt-0.5">บันทึกค่าโฆษณารายวัน</p>
+        <h1 className="text-base font-semibold text-slate-800">Ad Spend</h1>
+        <p className="text-xs text-pink-300 mt-0.5">บันทึกค่าโฆษณารายวัน</p>
       </div>
 
-      {/* Summary */}
       <div className="grid grid-cols-2 gap-3">
-        <div className="bg-white border border-slate-100 rounded-lg px-5 py-4">
-          <p className="text-xs text-slate-400">วันนี้</p>
-          <p className="text-2xl font-semibold text-slate-900 mt-1">{fmt(totalToday)}</p>
+        <div className="bg-white border border-pink-100 rounded-xl px-5 py-4 shadow-sm">
+          <p className="text-xs text-pink-400">วันนี้</p>
+          <p className="text-2xl font-semibold text-slate-800 mt-1">{fmt(totalToday)}</p>
         </div>
-        <div className="bg-white border border-slate-100 rounded-lg px-5 py-4">
-          <p className="text-xs text-slate-400">เดือนนี้</p>
-          <p className="text-2xl font-semibold text-slate-900 mt-1">{fmt(totalMonth)}</p>
+        <div className="bg-white border border-pink-100 rounded-xl px-5 py-4 shadow-sm">
+          <p className="text-xs text-pink-400">เดือนนี้</p>
+          <p className="text-2xl font-semibold text-slate-800 mt-1">{fmt(totalMonth)}</p>
         </div>
       </div>
 
-      {/* Form */}
-      <div className="bg-white border border-slate-100 rounded-lg p-5">
-        <p className="text-sm font-medium text-slate-900 mb-4">บันทึกค่าโฆษณา</p>
+      <div className="bg-white border border-pink-100 rounded-xl p-5 shadow-sm">
+        <p className="text-sm font-medium text-slate-800 mb-4">บันทึกค่าโฆษณา</p>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <div>
-              <label className="text-xs text-slate-400 block mb-1">วันที่</label>
+              <label className="text-xs text-pink-400 block mb-1">วันที่</label>
               <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className={inputCls} />
             </div>
             <div>
-              <label className="text-xs text-slate-400 block mb-1">Platform</label>
+              <label className="text-xs text-pink-400 block mb-1">Platform</label>
               <select value={platform} onChange={(e) => setPlatform(e.target.value)} className={inputCls}>
                 <option value="tiktok">TikTok</option>
                 <option value="facebook">Facebook</option>
@@ -93,12 +91,12 @@ export default function AdSpendClient({ records }: { records: AdSpendRow[] }) {
               </select>
             </div>
             <div>
-              <label className="text-xs text-slate-400 block mb-1">จำนวนเงิน (฿) *</label>
+              <label className="text-xs text-pink-400 block mb-1">จำนวนเงิน (฿) *</label>
               <input type="number" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="0" className={inputCls} />
             </div>
             <div className="flex items-end">
               <button type="submit" disabled={saving}
-                className="w-full bg-slate-900 text-white py-1.5 rounded-md text-sm font-medium hover:bg-slate-700 disabled:opacity-50 flex items-center justify-center gap-2">
+                className="w-full bg-pink-500 text-white py-1.5 rounded-lg text-sm font-medium hover:bg-pink-400 disabled:opacity-50 flex items-center justify-center gap-2">
                 {saving ? <Loader2 size={13} className="animate-spin" /> : <Plus size={13} />} บันทึก
               </button>
             </div>
@@ -111,25 +109,24 @@ export default function AdSpendClient({ records }: { records: AdSpendRow[] }) {
               { label: "หมายเหตุ", val: notes, set: setNotes, text: true },
             ].map(({ label, val, set, text }) => (
               <div key={label}>
-                <label className="text-xs text-slate-400 block mb-1">{label}</label>
+                <label className="text-xs text-pink-400 block mb-1">{label}</label>
                 <input type={text ? "text" : "number"} value={val} onChange={(e) => set(e.target.value)}
                   placeholder={text ? "ไม่บังคับ" : "0"} className={inputCls} />
               </div>
             ))}
           </div>
 
-          {error && <p className="text-xs text-red-500">{error}</p>}
+          {error && <p className="text-xs text-red-400">{error}</p>}
         </form>
       </div>
 
-      {/* History */}
-      <div className="bg-white border border-slate-100 rounded-lg overflow-hidden">
-        <div className="px-4 py-3 border-b border-slate-100">
+      <div className="bg-white border border-pink-100 rounded-xl overflow-hidden shadow-sm">
+        <div className="px-4 py-3 border-b border-pink-50">
           <p className="text-xs text-slate-500">ประวัติ 30 วัน</p>
         </div>
         <table className="w-full text-left text-sm">
           <thead>
-            <tr className="border-b border-slate-100 text-xs text-slate-400">
+            <tr className="border-b border-pink-50 text-xs text-pink-400">
               <th className="px-4 py-3 font-medium">วันที่</th>
               <th className="px-4 py-3 font-medium">Platform</th>
               <th className="px-4 py-3 font-medium">จำนวนเงิน</th>
@@ -139,22 +136,22 @@ export default function AdSpendClient({ records }: { records: AdSpendRow[] }) {
               <th className="px-4 py-3"></th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-50">
+          <tbody className="divide-y divide-pink-50">
             {records.length === 0 ? (
-              <tr><td colSpan={7} className="text-center py-12 text-xs text-slate-300">ยังไม่มีรายการ</td></tr>
+              <tr><td colSpan={7} className="text-center py-12 text-xs text-pink-200">ยังไม่มีรายการ</td></tr>
             ) : records.map((r) => (
-              <tr key={r.id} className="hover:bg-slate-50 transition-colors">
+              <tr key={r.id} className="hover:bg-pink-50/40 transition-colors">
                 <td className="px-4 py-3 text-slate-700">
                   {new Date(r.spend_date).toLocaleDateString("th-TH", { day: "numeric", month: "short", year: "numeric" })}
                 </td>
                 <td className="px-4 py-3 text-xs text-slate-500">{PLATFORM_LABEL[r.platform] ?? r.platform}</td>
-                <td className="px-4 py-3 font-medium text-slate-900">{fmt(r.amount)}</td>
+                <td className="px-4 py-3 font-medium text-slate-800">{fmt(r.amount)}</td>
                 <td className="px-4 py-3 text-xs text-slate-400">{r.impressions?.toLocaleString() ?? "–"}</td>
                 <td className="px-4 py-3 text-xs text-slate-400">{r.clicks?.toLocaleString() ?? "–"}</td>
                 <td className="px-4 py-3 text-xs text-slate-400">{r.notes ?? "–"}</td>
                 <td className="px-4 py-3">
                   <button onClick={() => handleDelete(r.id)} disabled={deletingId === r.id}
-                    className="text-slate-300 hover:text-red-400 transition-colors disabled:opacity-50">
+                    className="text-pink-200 hover:text-red-400 transition-colors disabled:opacity-50">
                     {deletingId === r.id ? <Loader2 size={13} className="animate-spin" /> : <Trash2 size={13} />}
                   </button>
                 </td>

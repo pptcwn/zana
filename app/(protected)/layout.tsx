@@ -13,9 +13,9 @@ export default async function ProtectedLayout({
   if (!user) redirect("/login");
 
   return (
-    <div className="flex min-h-screen bg-white">
+    <div className="flex min-h-screen bg-[#FFF0F3]">
       <Sidebar />
-      <main className="flex-1 min-w-0 px-8 py-8 bg-[#fafafa]">
+      <main className="flex-1 min-w-0 px-8 py-8 bg-[#FFF0F3]">
         {children}
       </main>
     </div>
