@@ -1,8 +1,7 @@
-export default function DashboardPage() {
-  return (
-    <div>
-      <h1 className="text-xl font-semibold text-slate-900">Dashboard</h1>
-      <p className="text-sm text-slate-500 mt-1">ยินดีต้อนรับสู่ ZANA CRM</p>
-    </div>
-  );
+import { getDashboardData } from "@/lib/data/dashboard";
+import DashboardClient from "./dashboard-client";
+
+export default async function DashboardPage() {
+  const data = await getDashboardData();
+  return <DashboardClient data={data} />;
 }
