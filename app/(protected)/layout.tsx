@@ -26,6 +26,9 @@ export default async function ProtectedLayout({
             <Link href="/dashboard" className="text-sm text-slate-600 hover:text-slate-900 transition-colors">
               Dashboard
             </Link>
+            <Link href="/orders" className="text-sm text-slate-600 hover:text-slate-900 transition-colors">
+              Orders
+            </Link>
             <Link href="/crm" className="text-sm text-slate-600 hover:text-slate-900 transition-colors">
               CRM
             </Link>
