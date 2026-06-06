@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { signOut } from "@/app/(auth)/login/actions";
@@ -19,7 +20,17 @@ export default async function ProtectedLayout({
   return (
     <div className="min-h-screen bg-slate-50">
       <nav className="bg-white border-b border-slate-200 px-6 py-3 flex items-center justify-between">
-        <span className="font-bold text-slate-900">ZANA</span>
+        <div className="flex items-center gap-6">
+          <span className="font-bold text-slate-900">ZANA</span>
+          <div className="flex items-center gap-4">
+            <Link href="/dashboard" className="text-sm text-slate-600 hover:text-slate-900 transition-colors">
+              Dashboard
+            </Link>
+            <Link href="/crm" className="text-sm text-slate-600 hover:text-slate-900 transition-colors">
+              CRM
+            </Link>
+          </div>
+        </div>
         <form action={signOut}>
           <button
             type="submit"
@@ -29,7 +40,7 @@ export default async function ProtectedLayout({
           </button>
         </form>
       </nav>
-      <main className="p-6">{children}</main>
+      <main className="max-w-7xl mx-auto px-6 py-6">{children}</main>
     </div>
   );
 }
