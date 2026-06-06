@@ -34,7 +34,7 @@ const CustomTooltip = ({ active, payload, label }: {
 
 function StatCard({ label, value, sub }: { label: string; value: string; sub?: string }) {
   return (
-    <div className="bg-white border border-pink-100 rounded-xl p-5 shadow-sm">
+    <div style={{ background: "#ffffff", border: "1.5px solid #f9a8d4" }} className="rounded-xl p-5 shadow-sm">
       <p className="text-xs text-pink-400 mb-3">{label}</p>
       <p className="text-2xl font-semibold text-slate-800 tracking-tight">{value}</p>
       {sub && <p className="text-xs text-slate-400 mt-1.5">{sub}</p>}
@@ -52,7 +52,7 @@ function ProfitCalculator({ adSpendToday, todayRevenue }: { adSpendToday: number
   const margin = revenue > 0 ? ((netProfit / revenue) * 100).toFixed(1) : "0";
 
   return (
-    <div className="bg-white border border-pink-100 rounded-xl p-5 shadow-sm">
+    <div className="bg-white border border-pink-200 rounded-xl p-5 shadow-sm">
       <p className="text-sm font-medium text-slate-800 mb-4">Profit Calculator</p>
       <div className="grid grid-cols-2 gap-3 mb-4">
         {[
@@ -112,7 +112,7 @@ export default function DashboardClient({ data }: { data: DashboardData }) {
       </div>
 
       {/* Chart */}
-      <div className="bg-white border border-pink-100 rounded-xl p-5 shadow-sm">
+      <div className="bg-white border border-pink-200 rounded-xl p-5 shadow-sm">
         <p className="text-sm font-medium text-slate-800 mb-4">Revenue & Profit เดือนนี้</p>
         {data.dailySales.length === 0 ? (
           <div className="h-48 flex items-center justify-center text-xs text-pink-200">ยังไม่มีข้อมูล</div>
@@ -140,7 +140,7 @@ export default function DashboardClient({ data }: { data: DashboardData }) {
 
       {/* Platform */}
       {data.platformSales.length > 0 && (
-        <div className="bg-white border border-pink-100 rounded-xl p-5 shadow-sm">
+        <div className="bg-white border border-pink-200 rounded-xl p-5 shadow-sm">
           <p className="text-sm font-medium text-slate-800 mb-4">Sales by Platform เดือนนี้</p>
           <ResponsiveContainer width="100%" height={160}>
             <BarChart data={data.platformSales} layout="vertical" margin={{ left: 0, right: 0 }}>

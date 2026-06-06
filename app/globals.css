@@ -50,7 +50,7 @@
 
 :root {
   /* Pink feminine theme — inspired by Kyra Kallista brand */
-  --background: oklch(0.98 0.008 0);        /* #FFF0F3 warm pink-white */
+  --background: oklch(0.975 0.012 355);     /* #FFF0F3 warm pink-white */
   --foreground: oklch(0.2 0 0);             /* near-black text */
   --card: oklch(1 0 0);                     /* pure white cards */
   --card-foreground: oklch(0.2 0 0);
