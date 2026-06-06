@@ -2,10 +2,14 @@ import { PgBoss } from "pg-boss";
 import { z } from "zod";
 import { handleFollowupReminder } from "./handlers/followup-reminder.js";
 import { handlePlatformSync } from "./handlers/platform-sync.js";
+import { handleWebhookDispatch } from "./handlers/webhook-dispatch.js";
+import { handleTelegramNotification } from "./handlers/telegram-notification.js";
 import {
   QUEUES,
   type FollowupReminderJob,
   type PlatformSyncJob,
+  type TelegramNotificationJob,
+  type WebhookDispatchJob,
 } from "./queues.js";
 
 const envSchema = z.object({
@@ -46,6 +50,14 @@ async function startWorker() {
       retryLimit: 3,
       retryBackoff: true,
     }),
+    boss.createQueue(QUEUES.webhookDispatch, {
+      retryLimit: 8,
+      retryBackoff: true,
+    }),
+    boss.createQueue(QUEUES.telegramNotification, {
+      retryLimit: 5,
+      retryBackoff: true,
+    }),
   ]);
 
   await boss.schedule(
@@ -60,6 +72,14 @@ async function startWorker() {
     boss.work<FollowupReminderJob>(
       QUEUES.followupReminder,
       handleFollowupReminder
+    ),
+    boss.work<WebhookDispatchJob>(
+      QUEUES.webhookDispatch,
+      handleWebhookDispatch
+    ),
+    boss.work<TelegramNotificationJob>(
+      QUEUES.telegramNotification,
+      handleTelegramNotification
     ),
   ]);
 

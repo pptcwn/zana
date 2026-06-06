@@ -5,19 +5,27 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard, ShoppingBag, Users, Package, TrendingUp, MessageSquare,
-  Menu, X, LogOut,
+  Menu, X, LogOut, Workflow,
 } from "lucide-react";
+import type { AdminRole, Capability } from "@/lib/auth/capabilities";
 
 const NAV = [
-  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/orders", label: "Orders", icon: ShoppingBag },
-  { href: "/crm", label: "CRM", icon: MessageSquare },
-  { href: "/customers", label: "Customers", icon: Users },
-  { href: "/products", label: "Products", icon: Package },
-  { href: "/ad-spend", label: "Ad Spend", icon: TrendingUp },
+  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard, capability: null },
+  { href: "/kanban", label: "Workflow", icon: Workflow, capability: "kanban:orders" },
+  { href: "/orders", label: "Orders", icon: ShoppingBag, capability: "orders:write" },
+  { href: "/crm", label: "CRM", icon: MessageSquare, capability: "crm:write" },
+  { href: "/customers", label: "Customers", icon: Users, capability: "customers:write" },
+  { href: "/products", label: "Products", icon: Package, capability: "products:write" },
+  { href: "/ad-spend", label: "Ad Spend", icon: TrendingUp, capability: "ad-spend:write" },
 ];
 
-export default function Sidebar() {
+export default function Sidebar({
+  role,
+  capabilities,
+}: {
+  role: AdminRole;
+  capabilities: Capability[];
+}) {
   const pathname = usePathname();
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -84,7 +92,10 @@ export default function Sidebar() {
           <p className="px-3 pb-1.5 text-[10px] font-medium uppercase tracking-[0.15em] text-muted-foreground/70">
             เมนู
           </p>
-          {NAV.map(({ href, label, icon: Icon }) => {
+          {NAV.filter(
+            ({ capability }) =>
+              !capability || capabilities.includes(capability as Capability)
+          ).map(({ href, label, icon: Icon }) => {
             const active = pathname === href || pathname.startsWith(href + "/");
             return (
               <Link
@@ -107,6 +118,9 @@ export default function Sidebar() {
 
         {/* User */}
         <div className="px-3 py-3 border-t border-pink-100">
+          <p className="px-3 pb-2 text-[10px] uppercase tracking-[0.14em] text-muted-foreground/60">
+            {role}
+          </p>
           <button
             type="button"
             onClick={handleSignOut}

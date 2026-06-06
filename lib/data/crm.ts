@@ -30,7 +30,12 @@ export async function markFollowupDone(id: string, outcome: string) {
   const supabase = await createClient();
   const { error } = await supabase
     .from("followups")
-    .update({ status: "done", outcome, contacted_at: new Date().toISOString() })
+    .update({
+      status: "done",
+      kanban_stage: "done",
+      outcome,
+      contacted_at: new Date().toISOString(),
+    })
     .eq("id", id);
   if (error) throwDatabaseError(error, "markFollowupDone");
 }
@@ -39,7 +44,7 @@ export async function skipFollowup(id: string) {
   const supabase = await createClient();
   const { error } = await supabase
     .from("followups")
-    .update({ status: "skipped" })
+    .update({ status: "skipped", kanban_stage: "cancelled" })
     .eq("id", id);
   if (error) throwDatabaseError(error, "skipFollowup");
 }

@@ -1,31 +1,35 @@
 import { createClient } from "@/lib/supabase/server";
+import type { Capability } from "@/lib/auth/capabilities";
 
-export async function getDashboardData() {
+export async function getDashboardData(capabilities: Capability[]) {
   const supabase = await createClient();
+  const financial = capabilities.includes("dashboard:financial");
+  const sales = financial || capabilities.includes("dashboard:sales");
+  const inventory = capabilities.includes("dashboard:inventory");
 
   const today = new Date().toISOString().split("T")[0];
   const startOfMonth = today.slice(0, 7) + "-01";
 
   const [todayOrders, monthOrders, adSpendToday, lowStock] = await Promise.all([
-    supabase
+    sales ? supabase
       .from("orders")
       .select("total_amount, net_profit, platform")
-      .gte("invoice_date", today),
+      .gte("invoice_date", today) : Promise.resolve({ data: [], error: null }),
 
-    supabase
+    sales ? supabase
       .from("orders")
       .select("invoice_date, total_amount, net_profit, platform")
-      .gte("invoice_date", startOfMonth),
+      .gte("invoice_date", startOfMonth) : Promise.resolve({ data: [], error: null }),
 
-    supabase
+    financial ? supabase
       .from("ad_spend")
       .select("platform, amount")
-      .eq("spend_date", today),
+      .eq("spend_date", today) : Promise.resolve({ data: [], error: null }),
 
-    supabase
+    inventory ? supabase
       .from("products")
       .select("name, sku, stock_qty, low_stock_threshold")
-      .eq("is_active", true),
+      .eq("is_active", true) : Promise.resolve({ data: [], error: null }),
   ]);
 
   const todayRevenue = (todayOrders.data ?? []).reduce((s, o) => s + o.total_amount, 0);
@@ -90,6 +94,7 @@ export async function getDashboardData() {
         stock: p.stock_qty,
         threshold: p.low_stock_threshold,
       })),
+    visibility: { financial, sales, inventory },
   };
 }
 

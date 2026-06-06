@@ -13,7 +13,11 @@
     "isolatedModules": false
   },
   "include": [
-    "lib/jobs/**/*.ts",
+    "lib/jobs/worker.ts",
+    "lib/jobs/queues.ts",
+    "lib/jobs/handlers/**/*.ts",
+    "lib/notifications/telegram.ts",
+    "lib/platforms/types.ts",
     "lib/supabase/types.ts"
   ],
   "exclude": [

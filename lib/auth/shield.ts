@@ -2,28 +2,18 @@ import "server-only";
 
 import { createClient } from "@/lib/supabase/server";
 import { throwDatabaseError } from "@/lib/errors/database-error";
-
-export const ADMIN_ROLES = [
-  "admin",
-  "ceo",
-  "telesales",
-  "clerk",
-  "stock",
-] as const;
-
-export type AdminRole = (typeof ADMIN_ROLES)[number];
-
-export type Capability =
-  | "orders:write"
-  | "customers:write"
-  | "crm:write"
-  | "ad-spend:write"
-  | "products:write";
+import {
+  isAdminRole,
+  isCapability,
+  type AdminRole,
+  type Capability,
+} from "@/lib/auth/capabilities";
 
 export type AuthorizedAdmin = {
   userId: string;
   adminId: string;
   role: AdminRole;
+  capabilities: Capability[];
 };
 
 export type AuthorizationErrorCode =
@@ -39,33 +29,13 @@ export class AuthorizationError extends Error {
   }
 }
 
-const CAPABILITIES: Record<AdminRole, readonly Capability[]> = {
-  admin: [
-    "orders:write",
-    "customers:write",
-    "crm:write",
-    "ad-spend:write",
-    "products:write",
-  ],
-  ceo: [
-    "orders:write",
-    "customers:write",
-    "crm:write",
-    "ad-spend:write",
-    "products:write",
-  ],
-  telesales: ["orders:write", "customers:write", "crm:write"],
-  clerk: ["orders:write", "customers:write", "ad-spend:write"],
-  stock: ["products:write"],
+type AdminContextPayload = {
+  admin_id?: unknown;
+  role?: unknown;
+  capabilities?: unknown;
 };
 
-function isAdminRole(value: string): value is AdminRole {
-  return (ADMIN_ROLES as readonly string[]).includes(value);
-}
-
-export async function requireCapability(
-  capability: Capability
-): Promise<AuthorizedAdmin> {
+export async function getAuthorizedAdmin(): Promise<AuthorizedAdmin> {
   const supabase = await createClient();
   const {
     data: { user },
@@ -76,31 +46,41 @@ export async function requireCapability(
     throw new AuthorizationError("UNAUTHENTICATED");
   }
 
-  const { data: admin, error: adminError } = await supabase
-    .from("admins")
-    .select("id, role, is_active")
-    .eq("auth_user_id", user.id)
-    .maybeSingle();
+  const { data, error: adminError } = await supabase.rpc(
+    "get_my_admin_context"
+  );
 
   if (adminError) {
     throwDatabaseError(adminError, "requireCapability");
   }
 
-  if (!admin) {
+  const context = data as AdminContextPayload | null;
+  if (!context || typeof context.admin_id !== "string") {
     throw new AuthorizationError("ADMIN_NOT_LINKED");
   }
 
-  if (!admin.is_active) {
-    throw new AuthorizationError("ADMIN_INACTIVE");
-  }
-
-  if (!isAdminRole(admin.role) || !CAPABILITIES[admin.role].includes(capability)) {
+  if (!isAdminRole(context.role)) {
     throw new AuthorizationError("FORBIDDEN");
   }
 
+  const capabilities = Array.isArray(context.capabilities)
+    ? context.capabilities.filter(isCapability)
+    : [];
+
   return {
     userId: user.id,
-    adminId: admin.id,
-    role: admin.role,
+    adminId: context.admin_id,
+    role: context.role,
+    capabilities,
   };
+}
+
+export async function requireCapability(
+  capability: Capability
+): Promise<AuthorizedAdmin> {
+  const admin = await getAuthorizedAdmin();
+  if (!admin.capabilities.includes(capability)) {
+    throw new AuthorizationError("FORBIDDEN");
+  }
+  return admin;
 }

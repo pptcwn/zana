@@ -30,6 +30,13 @@ jobs:
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           PGBOSS_DATABASE_URL: ${{ secrets.PGBOSS_DATABASE_URL }}
+          TIKTOK_WEBHOOK_SECRET: ${{ secrets.TIKTOK_WEBHOOK_SECRET }}
+          SHOPEE_WEBHOOK_SECRET: ${{ secrets.SHOPEE_WEBHOOK_SECRET }}
+          FACEBOOK_WEBHOOK_SECRET: ${{ secrets.FACEBOOK_WEBHOOK_SECRET }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_WEBHOOK_SECRET: ${{ secrets.TELEGRAM_WEBHOOK_SECRET }}
+          TELEGRAM_DEFAULT_CHAT_ID: ${{ secrets.TELEGRAM_DEFAULT_CHAT_ID }}
+          PLATFORM_CREDENTIALS_ENCRYPTION_KEY: ${{ secrets.PLATFORM_CREDENTIALS_ENCRYPTION_KEY }}
 
       - name: Build worker
         run: npm run build:worker
@@ -41,12 +48,19 @@ jobs:
           SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           PGBOSS_DATABASE_URL: ${{ secrets.PGBOSS_DATABASE_URL }}
+          TIKTOK_WEBHOOK_SECRET: ${{ secrets.TIKTOK_WEBHOOK_SECRET }}
+          SHOPEE_WEBHOOK_SECRET: ${{ secrets.SHOPEE_WEBHOOK_SECRET }}
+          FACEBOOK_WEBHOOK_SECRET: ${{ secrets.FACEBOOK_WEBHOOK_SECRET }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_WEBHOOK_SECRET: ${{ secrets.TELEGRAM_WEBHOOK_SECRET }}
+          TELEGRAM_DEFAULT_CHAT_ID: ${{ secrets.TELEGRAM_DEFAULT_CHAT_ID }}
+          PLATFORM_CREDENTIALS_ENCRYPTION_KEY: ${{ secrets.PLATFORM_CREDENTIALS_ENCRYPTION_KEY }}
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
           port: ${{ secrets.VPS_PORT }}
-          envs: SUPABASE_URL,SUPABASE_ANON_KEY,SUPABASE_SERVICE_ROLE_KEY,PGBOSS_DATABASE_URL
+          envs: SUPABASE_URL,SUPABASE_ANON_KEY,SUPABASE_SERVICE_ROLE_KEY,PGBOSS_DATABASE_URL,TIKTOK_WEBHOOK_SECRET,SHOPEE_WEBHOOK_SECRET,FACEBOOK_WEBHOOK_SECRET,TELEGRAM_BOT_TOKEN,TELEGRAM_WEBHOOK_SECRET,TELEGRAM_DEFAULT_CHAT_ID,PLATFORM_CREDENTIALS_ENCRYPTION_KEY
           script: |
             cd /opt/zana
             git pull origin master
@@ -54,4 +68,11 @@ jobs:
             printf "NEXT_PUBLIC_SUPABASE_ANON_KEY=%s\n" "$SUPABASE_ANON_KEY" >> .env.production
             printf "SUPABASE_SERVICE_ROLE_KEY=%s\n" "$SUPABASE_SERVICE_ROLE_KEY" >> .env.production
             printf "PGBOSS_DATABASE_URL=%s\n" "$PGBOSS_DATABASE_URL" >> .env.production
+            printf "TIKTOK_WEBHOOK_SECRET=%s\n" "$TIKTOK_WEBHOOK_SECRET" >> .env.production
+            printf "SHOPEE_WEBHOOK_SECRET=%s\n" "$SHOPEE_WEBHOOK_SECRET" >> .env.production
+            printf "FACEBOOK_WEBHOOK_SECRET=%s\n" "$FACEBOOK_WEBHOOK_SECRET" >> .env.production
+            printf "TELEGRAM_BOT_TOKEN=%s\n" "$TELEGRAM_BOT_TOKEN" >> .env.production
+            printf "TELEGRAM_WEBHOOK_SECRET=%s\n" "$TELEGRAM_WEBHOOK_SECRET" >> .env.production
+            printf "TELEGRAM_DEFAULT_CHAT_ID=%s\n" "$TELEGRAM_DEFAULT_CHAT_ID" >> .env.production
+            printf "PLATFORM_CREDENTIALS_ENCRYPTION_KEY=%s\n" "$PLATFORM_CREDENTIALS_ENCRYPTION_KEY" >> .env.production
             docker compose --env-file .env.production -f docker-compose.yml up -d --build

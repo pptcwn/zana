@@ -59,6 +59,8 @@ export type Database = {
           email: string
           role: string
           is_active: boolean
+          telegram_user_id: number | null
+          telegram_username: string | null
           created_at: string
         }
         Insert: {
@@ -68,6 +70,8 @@ export type Database = {
           email: string
           role?: string
           is_active?: boolean
+          telegram_user_id?: number | null
+          telegram_username?: string | null
           created_at?: string
         }
         Update: {
@@ -77,6 +81,8 @@ export type Database = {
           email?: string
           role?: string
           is_active?: boolean
+          telegram_user_id?: number | null
+          telegram_username?: string | null
           created_at?: string
         }
         Relationships: []
@@ -105,6 +111,8 @@ export type Database = {
           platform: string
           tags: string[]
           notes: string | null
+          kanban_stage: string
+          sort_order: number
           created_at: string
           updated_at: string
         }
@@ -116,6 +124,8 @@ export type Database = {
           platform: string
           tags?: string[]
           notes?: string | null
+          kanban_stage?: string
+          sort_order?: number
           created_at?: string
           updated_at?: string
         }
@@ -127,6 +137,8 @@ export type Database = {
           platform?: string
           tags?: string[]
           notes?: string | null
+          kanban_stage?: string
+          sort_order?: number
           created_at?: string
           updated_at?: string
         }
@@ -150,6 +162,9 @@ export type Database = {
           payment_method: string | null
           tracking_number: string | null
           notes: string | null
+          kanban_stage: string
+          sort_order: number
+          status_changed_at: string
           created_at: string
           updated_at: string
         }
@@ -169,6 +184,9 @@ export type Database = {
           payment_method?: string | null
           tracking_number?: string | null
           notes?: string | null
+          kanban_stage?: string
+          sort_order?: number
+          status_changed_at?: string
           created_at?: string
           updated_at?: string
         }
@@ -188,6 +206,9 @@ export type Database = {
           payment_method?: string | null
           tracking_number?: string | null
           notes?: string | null
+          kanban_stage?: string
+          sort_order?: number
+          status_changed_at?: string
           created_at?: string
           updated_at?: string
         }
@@ -323,7 +344,10 @@ export type Database = {
           status: string
           outcome: string | null
           contacted_at: string | null
+          kanban_stage: string
+          sort_order: number
           created_at: string
+          updated_at: string
         }
         Insert: {
           id?: string
@@ -335,7 +359,10 @@ export type Database = {
           status?: string
           outcome?: string | null
           contacted_at?: string | null
+          kanban_stage?: string
+          sort_order?: number
           created_at?: string
+          updated_at?: string
         }
         Update: {
           id?: string
@@ -347,7 +374,10 @@ export type Database = {
           status?: string
           outcome?: string | null
           contacted_at?: string | null
+          kanban_stage?: string
+          sort_order?: number
           created_at?: string
+          updated_at?: string
         }
         Relationships: [
           {
@@ -372,6 +402,192 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      platform_accounts: {
+        Row: {
+          id: string
+          platform: string
+          external_account_id: string
+          display_name: string
+          credentials_ciphertext: string | null
+          webhook_secret_ciphertext: string | null
+          is_active: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          platform: string
+          external_account_id: string
+          display_name: string
+          credentials_ciphertext?: string | null
+          webhook_secret_ciphertext?: string | null
+          is_active?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: Partial<Database["public"]["Tables"]["platform_accounts"]["Insert"]>
+        Relationships: []
+      }
+      platform_webhook_events: {
+        Row: {
+          id: string
+          platform: string
+          platform_account_id: string | null
+          external_event_id: string
+          event_type: string
+          payload: Json
+          headers: Json
+          received_at: string
+          processing_status: string
+          attempts: number
+          processed_at: string | null
+          last_error: string | null
+        }
+        Insert: {
+          id?: string
+          platform: string
+          platform_account_id?: string | null
+          external_event_id: string
+          event_type: string
+          payload: Json
+          headers?: Json
+          received_at?: string
+          processing_status?: string
+          attempts?: number
+          processed_at?: string | null
+          last_error?: string | null
+        }
+        Update: Partial<Database["public"]["Tables"]["platform_webhook_events"]["Insert"]>
+        Relationships: []
+      }
+      platform_external_orders: {
+        Row: {
+          id: string
+          platform: string
+          platform_account_id: string | null
+          external_order_id: string
+          order_id: string | null
+          external_status: string | null
+          last_payload: Json
+          last_synced_at: string
+        }
+        Insert: {
+          id?: string
+          platform: string
+          platform_account_id?: string | null
+          external_order_id: string
+          order_id?: string | null
+          external_status?: string | null
+          last_payload?: Json
+          last_synced_at?: string
+        }
+        Update: Partial<Database["public"]["Tables"]["platform_external_orders"]["Insert"]>
+        Relationships: []
+      }
+      workflow_transition_log: {
+        Row: {
+          id: string
+          entity_type: string
+          entity_id: string
+          from_stage: string | null
+          to_stage: string
+          from_sort_order: number | null
+          to_sort_order: number
+          actor_admin_id: string | null
+          source: string
+          metadata: Json
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          entity_type: string
+          entity_id: string
+          from_stage?: string | null
+          to_stage: string
+          from_sort_order?: number | null
+          to_sort_order: number
+          actor_admin_id?: string | null
+          source?: string
+          metadata?: Json
+          created_at?: string
+        }
+        Update: Partial<Database["public"]["Tables"]["workflow_transition_log"]["Insert"]>
+        Relationships: []
+      }
+      telegram_chats: {
+        Row: {
+          id: string
+          chat_id: number
+          label: string
+          notification_types: string[]
+          is_active: boolean
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          chat_id: number
+          label: string
+          notification_types?: string[]
+          is_active?: boolean
+          created_at?: string
+        }
+        Update: Partial<Database["public"]["Tables"]["telegram_chats"]["Insert"]>
+        Relationships: []
+      }
+      telegram_action_tokens: {
+        Row: {
+          id: string
+          token_hash: string
+          action: string
+          entity_type: string
+          entity_id: string
+          target_stage: string | null
+          expires_at: string
+          consumed_at: string | null
+          consumed_by_admin_id: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          token_hash: string
+          action: string
+          entity_type: string
+          entity_id: string
+          target_stage?: string | null
+          expires_at: string
+          consumed_at?: string | null
+          consumed_by_admin_id?: string | null
+          created_at?: string
+        }
+        Update: Partial<Database["public"]["Tables"]["telegram_action_tokens"]["Insert"]>
+        Relationships: []
+      }
+      telegram_notification_logs: {
+        Row: {
+          id: string
+          chat_id: number
+          event_type: string
+          entity_type: string | null
+          entity_id: string | null
+          telegram_message_id: number | null
+          status: string
+          error_message: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          chat_id: number
+          event_type: string
+          entity_type?: string | null
+          entity_id?: string | null
+          telegram_message_id?: number | null
+          status: string
+          error_message?: string | null
+          created_at?: string
+        }
+        Update: Partial<Database["public"]["Tables"]["telegram_notification_logs"]["Insert"]>
+        Relationships: []
       }
       ad_spend: {
         Row: {
@@ -468,6 +684,50 @@ export type Database = {
           recent_orders: Json
           total_spend: number
         }[]
+      }
+      get_my_admin_context: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
+      move_order_kanban_card: {
+        Args: {
+          p_order_id: string
+          p_to_stage: string
+          p_sort_order: number
+          p_expected_updated_at: string
+          p_admin_id: string
+          p_source?: string
+        }
+        Returns: Database["public"]["Tables"]["orders"]["Row"]
+      }
+      move_customer_kanban_card: {
+        Args: {
+          p_customer_id: string
+          p_to_stage: string
+          p_sort_order: number
+          p_expected_updated_at: string
+          p_admin_id: string
+          p_source?: string
+        }
+        Returns: Database["public"]["Tables"]["customers"]["Row"]
+      }
+      move_followup_kanban_card: {
+        Args: {
+          p_followup_id: string
+          p_to_stage: string
+          p_sort_order: number
+          p_expected_updated_at: string
+          p_admin_id: string
+          p_source?: string
+        }
+        Returns: Database["public"]["Tables"]["followups"]["Row"]
+      }
+      perform_telegram_action: {
+        Args: {
+          p_token_hash: string
+          p_telegram_user_id: number
+        }
+        Returns: Json
       }
     }
     Enums: {

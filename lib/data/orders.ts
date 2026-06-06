@@ -14,6 +14,14 @@ export type OrderStatus =
   | "delivered"
   | "cancelled";
 
+const ORDER_KANBAN_STAGE: Record<OrderStatus, OrderStatus> = {
+  pending: "pending",
+  confirmed: "confirmed",
+  shipped: "shipped",
+  delivered: "delivered",
+  cancelled: "cancelled",
+};
+
 export type OrderFilters = PageRequest & {
   status?: string;
   platform?: string;
@@ -173,13 +181,21 @@ export async function updateOrderTracking(id: string, tracking_number: string) {
   const supabase = await createClient();
   const { error } = await supabase
     .from("orders")
-    .update({ tracking_number, status: "shipped", shipped_date: new Date().toISOString().slice(0, 10) })
+    .update({
+      tracking_number,
+      status: "shipped",
+      kanban_stage: "shipped",
+      shipped_date: new Date().toISOString().slice(0, 10),
+    })
     .eq("id", id);
   if (error) throwDatabaseError(error, "updateOrderTracking");
 }
 
-export async function updateOrderStatus(id: string, status: string) {
+export async function updateOrderStatus(id: string, status: OrderStatus) {
   const supabase = await createClient();
-  const { error } = await supabase.from("orders").update({ status }).eq("id", id);
+  const { error } = await supabase
+    .from("orders")
+    .update({ status, kanban_stage: ORDER_KANBAN_STAGE[status] })
+    .eq("id", id);
   if (error) throwDatabaseError(error, "updateOrderStatus");
 }

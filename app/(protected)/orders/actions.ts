@@ -4,6 +4,10 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { createOrder, updateOrderTracking, updateOrderStatus } from "@/lib/data/orders";
 import { requireCapability } from "@/lib/auth/shield";
+import { env } from "@/env";
+import { getJobBoss } from "@/lib/jobs/client";
+import { enqueueTelegramNotification } from "@/lib/jobs/enqueue";
+import { createTelegramActionToken } from "@/lib/telegram/action-tokens";
 
 const createOrderSchema = z.object({
   customer: z.object({
@@ -34,6 +38,23 @@ const orderStatusSchema = z.enum([
 export async function createOrderAction(input: Parameters<typeof createOrder>[0]) {
   const admin = await requireCapability("orders:write");
   const result = await createOrder(createOrderSchema.parse(input), admin.adminId);
+  if (env.TELEGRAM_DEFAULT_CHAT_ID && env.TELEGRAM_BOT_TOKEN) {
+    try {
+      const actionToken = await createTelegramActionToken({
+        action: "mark_packed",
+        entityType: "order",
+        entityId: result.orderId,
+        targetStage: "packed",
+      });
+      await enqueueTelegramNotification(await getJobBoss(), {
+        chatId: env.TELEGRAM_DEFAULT_CHAT_ID,
+        text: `<b>ออเดอร์ใหม่</b>\n${result.orderNumber}`,
+        actionToken,
+      });
+    } catch (error) {
+      console.error("[telegram] order notification enqueue failed", error);
+    }
+  }
   revalidatePath("/orders");
   revalidatePath("/dashboard");
   revalidatePath("/crm");
@@ -52,6 +73,16 @@ export async function updateTrackingAction(id: string, tracking: string) {
 export async function updateStatusAction(id: string, status: string) {
   await requireCapability("orders:write");
   await updateOrderStatus(z.uuid().parse(id), orderStatusSchema.parse(status));
+  if (env.TELEGRAM_DEFAULT_CHAT_ID && env.TELEGRAM_BOT_TOKEN) {
+    try {
+      await enqueueTelegramNotification(await getJobBoss(), {
+        chatId: env.TELEGRAM_DEFAULT_CHAT_ID,
+        text: `<b>สถานะออเดอร์เปลี่ยน</b>\n${status}`,
+      });
+    } catch (error) {
+      console.error("[telegram] status notification enqueue failed", error);
+    }
+  }
   revalidatePath("/orders");
   revalidatePath("/dashboard");
 }

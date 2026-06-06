@@ -1,0 +1,2 @@
+alter table public.platform_external_orders
+  drop constraint if exists platform_external_orders_platform_platform_account_id_exter_key;

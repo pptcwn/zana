@@ -6,6 +6,7 @@ import {
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
 } from "recharts";
 import type { DashboardData } from "@/lib/data/dashboard";
+import type { AdminRole } from "@/lib/auth/capabilities";
 
 const fmt = (n: number) =>
   new Intl.NumberFormat("th-TH", { style: "currency", currency: "THB", maximumFractionDigits: 0 }).format(n);
@@ -87,12 +88,18 @@ function ProfitCalculator({ adSpendToday, todayRevenue }: { adSpendToday: number
   );
 }
 
-export default function DashboardClient({ data }: { data: DashboardData }) {
+export default function DashboardClient({
+  data,
+  role,
+}: {
+  data: DashboardData;
+  role: AdminRole;
+}) {
   return (
     <div className="space-y-6 max-w-5xl">
       <div>
         <h1 className="text-xl font-semibold text-foreground tracking-tight">Dashboard</h1>
-        <p className="text-sm text-muted-foreground mt-0.5">ภาพรวมธุรกิจ</p>
+        <p className="text-sm text-muted-foreground mt-0.5">ภาพรวมสำหรับ {role}</p>
       </div>
 
       {/* Low stock */}
