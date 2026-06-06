@@ -18,6 +18,7 @@ alter view public.dead_letter_events owner to postgres;
 revoke all on public.dead_letter_events from anon, authenticated;
 grant select on public.dead_letter_events to authenticated;
 
+drop policy if exists dead_letter_select_admin on public.platform_webhook_events;
 create policy dead_letter_select_admin
   on public.platform_webhook_events for select to authenticated
   using (private.has_admin_capability('integrations:manage'));
