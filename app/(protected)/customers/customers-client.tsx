@@ -29,9 +29,14 @@ function CustomerPanel({ customer, onClose }: { customer: CustomerRow; onClose: 
 
   async function handleSave() {
     setSaving(true);
-    await updateCustomerAction(customer.id, { name, phone, address: address || null, notes: notes || null });
-    setSaving(false);
-    setEditing(false);
+    try {
+      await updateCustomerAction(customer.id, { name, phone, address: address || null, notes: notes || null });
+      setEditing(false);
+    } catch {
+      alert("บันทึกไม่สำเร็จ กรุณาลองใหม่");
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (

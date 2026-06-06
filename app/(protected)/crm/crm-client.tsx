@@ -40,9 +40,14 @@ function MarkDoneModal({ item, onClose }: { item: FollowupRow; onClose: () => vo
 
   async function handleSubmit() {
     setSaving(true);
-    await markDoneAction(item.id, outcome);
-    setSaving(false);
-    onClose();
+    try {
+      await markDoneAction(item.id, outcome);
+      onClose();
+    } catch {
+      alert("บันทึกไม่สำเร็จ กรุณาลองใหม่");
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (

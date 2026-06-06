@@ -31,14 +31,19 @@ export default function AdSpendClient({ records }: { records: AdSpendRow[] }) {
     if (!amount || Number(amount) <= 0) { setError("กรุณากรอกจำนวนเงิน"); return; }
     setSaving(true);
     setError("");
-    await createAdSpendAction({
-      spend_date: date, platform, amount: Number(amount),
-      impressions: impressions ? Number(impressions) : null,
-      clicks: clicks ? Number(clicks) : null,
-      notes: notes || null,
-    });
-    setAmount(""); setImpressions(""); setClicks(""); setNotes("");
-    setSaving(false);
+    try {
+      await createAdSpendAction({
+        spend_date: date, platform, amount: Number(amount),
+        impressions: impressions ? Number(impressions) : null,
+        clicks: clicks ? Number(clicks) : null,
+        notes: notes || null,
+      });
+      setAmount(""); setImpressions(""); setClicks(""); setNotes("");
+    } catch {
+      setError("บันทึกไม่สำเร็จ กรุณาลองใหม่");
+    } finally {
+      setSaving(false);
+    }
   }
 
   async function handleDelete(id: string) {

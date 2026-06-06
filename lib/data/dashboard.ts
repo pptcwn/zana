@@ -25,7 +25,6 @@ export async function getDashboardData() {
     supabase
       .from("products")
       .select("name, sku, stock_qty, low_stock_threshold")
-      .filter("stock_qty", "lte", "low_stock_threshold")
       .eq("is_active", true),
   ]);
 
@@ -83,12 +82,14 @@ export async function getDashboardData() {
     adSpendToday: totalAdSpendToday,
     dailySales,
     platformSales,
-    lowStock: (lowStock.data ?? []).map((p) => ({
-      name: p.name,
-      sku: p.sku,
-      stock: p.stock_qty,
-      threshold: p.low_stock_threshold,
-    })),
+    lowStock: (lowStock.data ?? [])
+      .filter((p) => p.stock_qty <= p.low_stock_threshold)
+      .map((p) => ({
+        name: p.name,
+        sku: p.sku,
+        stock: p.stock_qty,
+        threshold: p.low_stock_threshold,
+      })),
   };
 }
 

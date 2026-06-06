@@ -81,9 +81,14 @@ function InlineEdit({ value, onSave }: { value: number; onSave: (v: number) => P
 
   async function handleSave() {
     setSaving(true);
-    await onSave(Number(val));
-    setSaving(false);
-    setEditing(false);
+    try {
+      await onSave(Number(val));
+      setEditing(false);
+    } catch {
+      alert("บันทึกไม่สำเร็จ กรุณาลองใหม่");
+    } finally {
+      setSaving(false);
+    }
   }
 
   if (editing) {

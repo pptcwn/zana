@@ -182,9 +182,14 @@ function OrderPanel({ order, onClose }: { order: OrderRow; onClose: () => void }
 
   async function handleSaveTracking() {
     setSaving(true);
-    await updateTrackingAction(order.id, tracking);
-    setSavedTracking(tracking);
-    setSaving(false);
+    try {
+      await updateTrackingAction(order.id, tracking);
+      setSavedTracking(tracking);
+    } catch {
+      alert("บันทึก tracking ไม่สำเร็จ กรุณาลองใหม่");
+    } finally {
+      setSaving(false);
+    }
   }
 
   async function handleStatus(status: string) {

@@ -156,7 +156,8 @@ export async function createOrder(input: {
       status: "pending",
     };
   });
-  await supabase.from("followups").insert(followups);
+  const { error: fErr } = await supabase.from("followups").insert(followups);
+  if (fErr) throw fErr;
 
   return { orderId: order.id, orderNumber };
 }

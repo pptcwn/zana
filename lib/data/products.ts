@@ -44,11 +44,12 @@ export async function adjustStock(id: string, qtyChange: number, notes: string) 
     .eq("id", id);
   if (uErr) throw uErr;
 
-  await supabase.from("inventory_movements").insert({
+  const { error: mErr } = await supabase.from("inventory_movements").insert({
     product_id: id,
     movement_type: qtyChange > 0 ? "restock" : "adjustment",
     qty_change: qtyChange,
     qty_after: newQty,
     notes: notes || null,
   });
+  if (mErr) throw mErr;
 }
