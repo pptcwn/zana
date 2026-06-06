@@ -6,8 +6,8 @@ export default async function AdSpendPage() {
   return (
     <div>
       <div className="mb-6">
-        <h1 className="text-xl font-semibold text-slate-900">Ad Spend</h1>
-        <p className="text-sm text-slate-500 mt-1">บันทึกค่าโฆษณารายวัน</p>
+        <h1 className="text-xl font-semibold text-foreground">Ad Spend</h1>
+        <p className="text-sm text-muted-foreground mt-1">บันทึกค่าโฆษณารายวัน</p>
       </div>
       <AdSpendClient records={records} />
     </div>

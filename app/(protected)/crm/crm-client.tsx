@@ -1,8 +1,10 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { Search, X, Loader2, Phone, MessageCircle } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Search, X, Loader2, Phone } from "lucide-react";
 import { markDoneAction, skipAction } from "./actions";
+import { toast } from "@/components/ui/feedback";
 import type { FollowupRow } from "@/lib/data/crm";
 
 const fmt = (n: number) =>
@@ -25,26 +27,30 @@ function daysDiff(dateStr: string) {
 }
 
 function DueLabel({ dueDate, status }: { dueDate: string; status: string }) {
-  if (status === "done") return <span className="text-xs text-slate-400">เสร็จแล้ว</span>;
+  if (status === "done") return <span className="text-xs text-muted-foreground/70">เสร็จแล้ว</span>;
   if (status === "skipped") return <span className="text-xs text-pink-200">ข้ามแล้ว</span>;
   const diff = daysDiff(dueDate);
   if (diff < 0) return <span className="text-xs text-red-400 font-medium">เกิน {Math.abs(diff)} วัน</span>;
   if (diff === 0) return <span className="text-xs text-red-400 font-medium">วันนี้</span>;
   if (diff <= 2) return <span className="text-xs text-amber-500">อีก {diff} วัน</span>;
-  return <span className="text-xs text-slate-400">อีก {diff} วัน</span>;
+  return <span className="text-xs text-muted-foreground/70">อีก {diff} วัน</span>;
 }
 
 function MarkDoneModal({ item, onClose }: { item: FollowupRow; onClose: () => void }) {
   const [outcome, setOutcome] = useState("");
   const [saving, setSaving] = useState(false);
 
+  const router = useRouter();
+
   async function handleSubmit() {
     setSaving(true);
     try {
       await markDoneAction(item.id, outcome);
+      toast.success("บันทึกผลการติดตามแล้ว");
       onClose();
+      router.refresh();
     } catch {
-      alert("บันทึกไม่สำเร็จ กรุณาลองใหม่");
+      toast.error("บันทึกไม่สำเร็จ กรุณาลองใหม่");
     } finally {
       setSaving(false);
     }
@@ -52,23 +58,23 @@ function MarkDoneModal({ item, onClose }: { item: FollowupRow; onClose: () => vo
 
   return (
     <div className="fixed inset-0 bg-black/30 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-xl w-full max-w-sm p-5 shadow-xl">
+      <div className="glass-strong w-full max-w-sm p-5">
         <div className="flex items-center justify-between mb-4">
-          <p className="text-sm font-semibold text-slate-800">บันทึกผลการติดตาม</p>
+          <p className="text-sm font-semibold text-foreground">บันทึกผลการติดตาม</p>
           <button onClick={onClose} className="text-pink-300 hover:text-pink-500"><X size={16} /></button>
         </div>
         <div className="bg-pink-50 rounded-lg p-3 mb-4">
-          <p className="text-sm font-medium text-slate-800">{item.customers?.name}</p>
+          <p className="text-sm font-medium text-foreground">{item.customers?.name}</p>
           <p className="text-xs text-pink-400 mt-0.5">{item.orders?.order_number} · {fmt(item.orders?.total_amount ?? 0)}</p>
         </div>
-        <label className="text-xs text-slate-400 block mb-1.5">ผลการติดต่อ</label>
+        <label className="text-xs text-muted-foreground/70 block mb-1.5">ผลการติดต่อ</label>
         <textarea value={outcome} onChange={(e) => setOutcome(e.target.value)} rows={3}
           placeholder="เช่น ลูกค้าพอใจ / ไม่รับสาย / สั่งซื้อเพิ่ม..."
-          className="w-full border border-pink-100 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-pink-300 resize-none placeholder:text-pink-200" />
+          className="input-luxe resize-none" />
         <div className="flex gap-2 mt-4">
-          <button onClick={onClose} className="flex-1 border border-pink-100 text-slate-500 py-2 rounded-lg text-sm hover:bg-pink-50">ยกเลิก</button>
+          <button onClick={onClose} className="flex-1 border border-pink-100 text-muted-foreground py-2 rounded-lg text-sm hover:bg-pink-50">ยกเลิก</button>
           <button onClick={handleSubmit} disabled={saving}
-            className="flex-1 bg-pink-500 text-white py-2 rounded-lg text-sm font-medium hover:bg-pink-400 disabled:opacity-50 flex items-center justify-center gap-2">
+            className="flex-1 btn-primary py-2 rounded-lg text-sm font-medium  disabled:opacity-50 flex items-center justify-center gap-2">
             {saving ? <Loader2 size={13} className="animate-spin" /> : null} บันทึก
           </button>
         </div>
@@ -110,8 +116,8 @@ export default function CRMClient({ followups }: { followups: FollowupRow[] }) {
   return (
     <div className="space-y-5 max-w-5xl">
       <div>
-        <h1 className="text-base font-semibold text-slate-800">CRM Follow-up</h1>
-        <p className="text-xs text-pink-300 mt-0.5">ติดตามลูกค้าหลังการสั่งซื้อ</p>
+        <h1 className="text-xl font-semibold text-foreground tracking-tight">CRM Follow-up</h1>
+        <p className="text-sm text-muted-foreground mt-0.5">ติดตามลูกค้าหลังการสั่งซื้อ</p>
       </div>
 
       <div className="grid grid-cols-3 gap-3">
@@ -120,9 +126,9 @@ export default function CRMClient({ followups }: { followups: FollowupRow[] }) {
           { label: "กำลังจะถึง", count: upcomingCount, urgent: false },
           { label: "เสร็จแล้ว", count: doneCount, urgent: false },
         ].map(({ label, count, urgent }) => (
-          <div key={label} className={`border rounded-xl px-4 py-3 shadow-sm ${urgent ? "border-red-100 bg-red-50" : "border-pink-100 bg-white"}`}>
+          <div key={label} className={`border rounded-xl px-4 py-3 shadow-sm ${urgent ? "border-red-100 bg-red-50" : "border-pink-100 bg-white/70"}`}>
             <p className={`text-xs font-medium ${urgent ? "text-red-400" : "text-pink-400"}`}>{label}</p>
-            <p className={`text-2xl font-semibold mt-1 ${urgent ? "text-red-500" : "text-slate-800"}`}>{count}</p>
+            <p className={`text-2xl font-semibold mt-1 ${urgent ? "text-red-500" : "text-foreground"}`}>{count}</p>
           </div>
         ))}
       </div>
@@ -131,18 +137,18 @@ export default function CRMClient({ followups }: { followups: FollowupRow[] }) {
         <div className="relative flex-1 min-w-48">
           <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-pink-300" />
           <input type="text" placeholder="ค้นหา..." value={search} onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-8 pr-3 py-1.5 border border-pink-100 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-pink-300 bg-white placeholder:text-pink-200" />
+            className="w-full pl-8 pr-3 py-1.5 border border-pink-100 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-pink-300 bg-white/70 placeholder:text-pink-200" />
         </div>
-        <div className="flex gap-0.5 border border-pink-100 rounded-lg p-0.5 bg-white">
+        <div className="flex gap-0.5 border border-pink-100 rounded-lg p-0.5 bg-white/70">
           {[["all", "ทั้งหมด"], ["pending", "รอติดตาม"], ["done", "เสร็จ"]].map(([val, label]) => (
             <button key={val} onClick={() => setFilterStatus(val)}
-              className={`text-xs px-2.5 py-1 rounded-md transition-colors ${filterStatus === val ? "bg-pink-500 text-white" : "text-slate-500 hover:text-pink-500"}`}>
+              className={`text-xs px-2.5 py-1 rounded-md transition-colors ${filterStatus === val ? "btn-primary" : "text-muted-foreground hover:text-pink-500"}`}>
               {label}
             </button>
           ))}
         </div>
         <select value={filterType} onChange={(e) => setFilterType(e.target.value)}
-          className="border border-pink-100 rounded-lg px-2.5 py-1.5 text-xs text-slate-600 focus:outline-none bg-white">
+          className="border border-pink-100 rounded-lg px-2.5 py-1.5 text-xs text-muted-foreground focus:outline-none bg-white/70">
           <option value="all">ทุก follow-up</option>
           <option value="3day">3 วัน</option>
           <option value="7day">7 วัน</option>
@@ -150,7 +156,7 @@ export default function CRMClient({ followups }: { followups: FollowupRow[] }) {
           <option value="30day">30 วัน</option>
         </select>
         <select value={filterPlatform} onChange={(e) => setFilterPlatform(e.target.value)}
-          className="border border-pink-100 rounded-lg px-2.5 py-1.5 text-xs text-slate-600 focus:outline-none bg-white">
+          className="border border-pink-100 rounded-lg px-2.5 py-1.5 text-xs text-muted-foreground focus:outline-none bg-white/70">
           <option value="all">ทุก Platform</option>
           <option value="tiktok">TikTok</option>
           <option value="facebook">Facebook</option>
@@ -159,14 +165,14 @@ export default function CRMClient({ followups }: { followups: FollowupRow[] }) {
         </select>
       </div>
 
-      <div className="bg-white border border-pink-100 rounded-xl overflow-hidden shadow-sm">
-        <div className="px-4 py-3 border-b border-pink-50 flex justify-between items-center">
-          <p className="text-xs text-slate-500">{filtered.length} รายการ</p>
+      <div className="glass overflow-x-auto">
+        <div className="px-4 py-3 border-b border-pink-100 flex justify-between items-center">
+          <p className="text-xs text-muted-foreground">{filtered.length} รายการ</p>
           <p className="text-xs text-pink-300">{new Date().toLocaleDateString("th-TH")}</p>
         </div>
-        <table className="w-full text-left text-sm">
+        <table className="w-full min-w-[640px] text-left text-sm">
           <thead>
-            <tr className="border-b border-pink-50 text-xs text-pink-400">
+            <tr className="border-b border-pink-100 text-xs text-pink-400">
               <th className="px-4 py-3 font-medium">ลูกค้า</th>
               <th className="px-4 py-3 font-medium">ออเดอร์</th>
               <th className="px-4 py-3 font-medium">Platform</th>
@@ -176,7 +182,7 @@ export default function CRMClient({ followups }: { followups: FollowupRow[] }) {
               <th className="px-4 py-3 font-medium">Action</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-pink-50">
+          <tbody className="divide-y divide-pink-100">
             {filtered.length === 0 ? (
               <tr><td colSpan={7} className="text-center py-12 text-xs text-pink-200">ไม่พบรายการ</td></tr>
             ) : filtered.map((f) => {
@@ -184,9 +190,9 @@ export default function CRMClient({ followups }: { followups: FollowupRow[] }) {
               const diff = daysDiff(f.due_date);
               const urgent = effectiveStatus === "pending" && diff <= 0;
               return (
-                <tr key={f.id} className={`transition-colors ${urgent ? "bg-red-50/40" : "hover:bg-pink-50/40"} ${effectiveStatus !== "pending" ? "opacity-50" : ""}`}>
+                <tr key={f.id} className={`transition-colors ${urgent ? "bg-red-50" : "hover:bg-pink-50/60"} ${effectiveStatus !== "pending" ? "opacity-50" : ""}`}>
                   <td className="px-4 py-3">
-                    <p className="text-slate-800 font-medium">{f.customers?.name ?? "–"}</p>
+                    <p className="text-foreground font-medium">{f.customers?.name ?? "–"}</p>
                     {f.customers?.phone && (
                       <a href={`tel:${f.customers.phone}`} className="text-xs text-pink-300 hover:text-pink-500 flex items-center gap-1 mt-0.5">
                         <Phone size={10} /> {f.customers.phone}
@@ -194,31 +200,31 @@ export default function CRMClient({ followups }: { followups: FollowupRow[] }) {
                     )}
                   </td>
                   <td className="px-4 py-3">
-                    <p className="text-xs text-slate-500">{f.orders?.order_number ?? "–"}</p>
-                    <p className="text-xs font-medium text-slate-700">{fmt(f.orders?.total_amount ?? 0)}</p>
+                    <p className="text-xs text-muted-foreground">{f.orders?.order_number ?? "–"}</p>
+                    <p className="text-xs font-medium text-foreground/90">{fmt(f.orders?.total_amount ?? 0)}</p>
                   </td>
-                  <td className="px-4 py-3 text-xs text-slate-500">{PLATFORM_LABEL[f.customers?.platform ?? ""] ?? f.customers?.platform ?? "–"}</td>
-                  <td className="px-4 py-3 text-xs text-slate-500">{TYPE_LABEL[f.followup_type] ?? f.followup_type}</td>
+                  <td className="px-4 py-3 text-xs text-muted-foreground">{PLATFORM_LABEL[f.customers?.platform ?? ""] ?? f.customers?.platform ?? "–"}</td>
+                  <td className="px-4 py-3 text-xs text-muted-foreground">{TYPE_LABEL[f.followup_type] ?? f.followup_type}</td>
                   <td className="px-4 py-3">
                     <DueLabel dueDate={f.due_date} status={effectiveStatus} />
                     <p className="text-xs text-pink-200 mt-0.5">
-                      {new Date(f.due_date).toLocaleDateString("th-TH", { day: "numeric", month: "short" })}
+                      {new Date(f.due_date + "T00:00:00").toLocaleDateString("th-TH", { day: "numeric", month: "short" })}
                     </p>
                   </td>
                   <td className="px-4 py-3 max-w-[120px]">
-                    <p className="text-xs text-slate-400 truncate">{f.outcome ?? "–"}</p>
+                    <p className="text-xs text-muted-foreground/70 truncate">{f.outcome ?? "–"}</p>
                   </td>
                   <td className="px-4 py-3">
                     {effectiveStatus === "pending" ? (
                       <div className="flex items-center gap-1.5">
                         <button onClick={() => setModalItem(f)}
-                          className="px-2.5 py-1 bg-pink-500 text-white rounded-lg text-xs font-medium hover:bg-pink-400 transition-colors">
+                          className="px-2.5 py-1 btn-primary rounded-lg text-xs font-medium  transition-colors">
                           Done
                         </button>
                         <button onClick={() => handleSkip(f.id)} className="text-pink-200 hover:text-pink-400"><X size={13} /></button>
                         {f.customers?.phone && (
-                          <a href={`https://line.me/ti/p/~${f.customers.phone}`} target="_blank" rel="noopener noreferrer"
-                            className="text-pink-200 hover:text-pink-400"><MessageCircle size={13} /></a>
+                          <a href={`tel:${f.customers.phone}`} aria-label="โทรหาลูกค้า"
+                            className="text-pink-300 hover:text-pink-500"><Phone size={13} /></a>
                         )}
                       </div>
                     ) : (

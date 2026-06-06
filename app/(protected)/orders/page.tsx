@@ -6,8 +6,8 @@ export default async function OrdersPage() {
   return (
     <div>
       <div className="mb-6">
-        <h1 className="text-xl font-semibold text-slate-900">Orders</h1>
-        <p className="text-sm text-slate-500 mt-1">จัดการออเดอร์ทั้งหมด</p>
+        <h1 className="text-xl font-semibold text-foreground">Orders</h1>
+        <p className="text-sm text-muted-foreground mt-1">จัดการออเดอร์ทั้งหมด</p>
       </div>
       <OrdersClient orders={orders} products={products} />
     </div>

@@ -7,9 +7,9 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-sans);
+  --font-sans: var(--font-geist-sans), var(--font-ibm-thai), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-geist-mono);
-  --font-heading: var(--font-sans);
+  --font-heading: var(--font-geist-sans), var(--font-ibm-thai), sans-serif;
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -48,85 +48,188 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
+/* Re-skin Tailwind's `pink` scale → pastel rose-gold ramp.
+   Existing pink-* utilities across the app automatically adopt this palette. */
+@theme {
+  --color-pink-50:  #fbf1ee;
+  --color-pink-100: #f4e4df;
+  --color-pink-200: #ead0cb;
+  --color-pink-300: #dcb4b2;
+  --color-pink-400: #b5817f;  /* labels / secondary */
+  --color-pink-500: #c56b7a;  /* deep rose — primary accent */
+  --color-pink-600: #a8505f;
+  --color-pink-700: #8a3f4d;
+  --color-pink-800: #5f2a35;
+  --color-pink-900: #431d25;
+}
+
 :root {
-  /* Pink feminine theme — inspired by Kyra Kallista brand */
-  --background: oklch(0.975 0.012 355);     /* #FFF0F3 warm pink-white */
-  --foreground: oklch(0.2 0 0);             /* near-black text */
-  --card: oklch(1 0 0);                     /* pure white cards */
-  --card-foreground: oklch(0.2 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.2 0 0);
-  --primary: oklch(0.65 0.22 0);            /* #EC4899 hot pink */
-  --primary-foreground: oklch(1 0 0);       /* white on pink */
-  --secondary: oklch(0.96 0.015 0);         /* pink-50 */
-  --secondary-foreground: oklch(0.4 0.1 0);
-  --muted: oklch(0.96 0.015 0);
-  --muted-foreground: oklch(0.55 0.05 0);
-  --accent: oklch(0.94 0.025 0);            /* pink-100 */
-  --accent-foreground: oklch(0.5 0.18 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.91 0.03 0);             /* pink-200 border */
-  --input: oklch(0.91 0.03 0);
-  --ring: oklch(0.75 0.15 0);              /* pink ring */
-  --chart-1: oklch(0.65 0.22 0);           /* primary pink */
-  --chart-2: oklch(0.75 0.15 0);           /* lighter pink */
-  --chart-3: oklch(0.82 0.1 0);
-  --chart-4: oklch(0.88 0.06 0);
-  --chart-5: oklch(0.93 0.03 0);
-  --radius: 0.75rem;
-  --sidebar: oklch(1 0 0);                  /* white sidebar */
-  --sidebar-foreground: oklch(0.2 0 0);
-  --sidebar-primary: oklch(0.65 0.22 0);
-  --sidebar-primary-foreground: oklch(1 0 0);
-  --sidebar-accent: oklch(0.96 0.015 0);
-  --sidebar-accent-foreground: oklch(0.5 0.18 0);
-  --sidebar-border: oklch(0.91 0.03 0);
-  --sidebar-ring: oklch(0.75 0.15 0);
+  /* Blush & cream — warm ivory surfaces, deep rose accent */
+  --background: #ece1d7;              /* deeper warm cream (body uses gradient) */
+  --foreground: #43323b;             /* deep mauve-brown text */
+  --card: #fbf6f1;                   /* soft off-white card */
+  --card-foreground: #43323b;
+  --popover: #fbf6f1;
+  --popover-foreground: #43323b;
+  --primary: #c56b7a;                /* deep rose */
+  --primary-foreground: #ffffff;
+  --secondary: #f6e7e1;
+  --secondary-foreground: #8a4a57;
+  --muted: #efe2db;
+  --muted-foreground: #7a655d;       /* deeper warm taupe, legible */
+  --accent: #efdad3;
+  --accent-foreground: #a8505f;
+  --destructive: #c0504d;
+  --border: #e3d3cc;                 /* warm cream border */
+  --input: #e3d3cc;
+  --ring: #d99aa4;
+  --chart-1: #c56b7a;                /* rose */
+  --chart-2: #c2996b;                /* gold */
+  --chart-3: #a86a82;                /* mauve */
+  --chart-4: #d99aa4;                /* dusty rose */
+  --chart-5: #9a8c99;                /* taupe violet */
+  --radius: 0.9rem;
+  --sidebar: #f6ede6;                /* soft warm cream */
+  --sidebar-foreground: #43323b;
+  --sidebar-primary: #c56b7a;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #f6e7e1;
+  --sidebar-accent-foreground: #a8505f;
+  --sidebar-border: #ebdcd6;
+  --sidebar-ring: #d99aa4;
+
+  /* Rose-gold + surface design tokens */
+  --rose-gold-1: #d99aa4;
+  --rose-gold-2: #c56b7a;
+  --rose-gold-3: #a8505f;
+  --glass-bg: #fbf6f1;
+  --glass-bg-strong: #fdfaf6;
+  --glass-border: #e4d5ce;
+  --glass-shadow: 0 10px 30px -18px rgba(150, 90, 100, 0.30);
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  --background: oklch(0.22 0.02 350);
+  --foreground: oklch(0.96 0.006 350);
+  --card: oklch(0.27 0.022 350);
+  --card-foreground: oklch(0.96 0.006 350);
+  --popover: oklch(0.27 0.022 350);
+  --popover-foreground: oklch(0.96 0.006 350);
+  --primary: oklch(0.70 0.09 8);
+  --primary-foreground: oklch(0.20 0.02 350);
+  --secondary: oklch(0.30 0.025 350);
+  --secondary-foreground: oklch(0.96 0.006 350);
+  --muted: oklch(0.30 0.025 350);
+  --muted-foreground: oklch(0.74 0.02 350);
+  --accent: oklch(0.34 0.04 350);
+  --accent-foreground: oklch(0.96 0.006 350);
+  --destructive: oklch(0.70 0.17 20);
+  --border: oklch(1 0 0 / 12%);
+  --input: oklch(1 0 0 / 16%);
+  --ring: oklch(0.70 0.09 8);
+  --sidebar: oklch(0.27 0.022 350);
+  --sidebar-foreground: oklch(0.96 0.006 350);
+  --sidebar-primary: oklch(0.70 0.09 8);
+  --sidebar-primary-foreground: oklch(0.20 0.02 350);
+  --sidebar-accent: oklch(0.34 0.04 350);
+  --sidebar-accent-foreground: oklch(0.96 0.006 350);
+  --sidebar-border: oklch(1 0 0 / 12%);
+  --sidebar-ring: oklch(0.70 0.09 8);
+  --glass-bg: rgba(40, 28, 33, 0.55);
+  --glass-bg-strong: rgba(40, 28, 33, 0.85);
+  --glass-border: rgba(255, 255, 255, 0.12);
+  --glass-shadow: 0 12px 40px -16px rgba(0, 0, 0, 0.5);
 }
 
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
-  body {
-    @apply text-foreground;
-    background-color: #FFF0F3;
-  }
   html {
     @apply font-sans;
+  }
+  body {
+    @apply text-foreground;
+    min-height: 100vh;
+    background:
+      radial-gradient(1100px 600px at 0% -5%, #f1e1d6 0%, rgba(241, 225, 214, 0) 55%),
+      radial-gradient(900px 700px at 103% 0%, #efddd1 0%, rgba(239, 221, 209, 0) 50%),
+      linear-gradient(135deg, #ece1d7 0%, #e7dccf 55%, #e3d7ca 100%);
+    background-attachment: fixed;
+  }
+
+  /* Dark luxury background — charcoal mauve with soft rose glow */
+  .dark body {
+    background:
+      radial-gradient(1100px 640px at 0% -8%, #4a2f3b 0%, rgba(74, 47, 59, 0) 55%),
+      radial-gradient(900px 700px at 104% 0%, #3a2a3d 0%, rgba(58, 42, 61, 0) 50%),
+      radial-gradient(1000px 1000px at 100% 108%, #2a1f33 0%, rgba(42, 31, 51, 0) 55%),
+      linear-gradient(135deg, #181219 0%, #1f1820 48%, #1b151f 100%);
+    background-attachment: fixed;
+  }
+
+  /* Soft luxury scrollbar */
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(178, 125, 134, 0.35);
+    border-radius: 9999px;
+    border: 2px solid transparent;
+    background-clip: content-box;
+  }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(178, 125, 134, 0.55); background-clip: content-box; }
+  ::-webkit-scrollbar-track { background: transparent; }
+}
+
+@layer components {
+  /* Soft cream card surface */
+  .glass {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 1.25rem;
+    box-shadow: var(--glass-shadow);
+  }
+  .glass-strong {
+    background: var(--glass-bg-strong);
+    border: 1px solid var(--glass-border);
+    border-radius: 1.5rem;
+    box-shadow: 0 24px 60px -24px rgba(150, 90, 100, 0.35);
+  }
+
+  /* Rose-gold primary action */
+  .btn-primary {
+    background-image: linear-gradient(135deg, var(--rose-gold-1) 0%, var(--rose-gold-2) 55%, var(--rose-gold-3) 100%);
+    color: #fff;
+    box-shadow: 0 8px 22px -10px rgba(152, 97, 107, 0.65);
+    transition: filter 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
+  }
+  .btn-primary:hover { filter: brightness(1.05) saturate(1.05); }
+  .btn-primary:active { transform: translateY(1px); }
+  .btn-primary:disabled { opacity: 0.55; filter: none; }
+
+  /* Luxe input */
+  .input-luxe {
+    width: 100%;
+    border: 1px solid var(--border);
+    background: #fdf9f6;
+    border-radius: 0.75rem;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+    color: var(--foreground);
+    transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+  }
+  .input-luxe::placeholder { color: color-mix(in oklch, var(--muted-foreground) 70%, transparent); }
+  .input-luxe:focus {
+    outline: none;
+    border-color: var(--rose-gold-2);
+    background: #ffffff;
+    box-shadow: 0 0 0 3px rgba(197, 107, 122, 0.18);
+  }
+
+  /* Subtle gradient text for brand/headings */
+  .text-rose-gold {
+    background: linear-gradient(120deg, var(--rose-gold-1), var(--rose-gold-3));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
   }
 }
