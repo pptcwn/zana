@@ -412,6 +412,7 @@ export type Database = {
           credentials_ciphertext: string | null
           webhook_secret_ciphertext: string | null
           is_active: boolean
+          is_webhook_enabled: boolean
           created_at: string
           updated_at: string
         }
@@ -423,6 +424,7 @@ export type Database = {
           credentials_ciphertext?: string | null
           webhook_secret_ciphertext?: string | null
           is_active?: boolean
+          is_webhook_enabled?: boolean
           created_at?: string
           updated_at?: string
         }
