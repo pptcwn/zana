@@ -1,0 +1,22 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "rootDir": "./lib",
+    "outDir": "./dist",
+    "noEmit": false,
+    "incremental": false,
+    "declaration": false,
+    "sourceMap": true,
+    "isolatedModules": false
+  },
+  "include": [
+    "lib/jobs/**/*.ts",
+    "lib/supabase/types.ts"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
+}

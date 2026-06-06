@@ -3,6 +3,7 @@ import { createEnv } from "@t3-oss/env-nextjs";
 import { z } from "zod";
 
 export const env = createEnv({
+  skipValidation: process.env.SKIP_ENV_VALIDATION === "1",
   server: {
     SUPABASE_SERVICE_ROLE_KEY: z.string().min(1),
     PGBOSS_DATABASE_URL: z.string().url(),

@@ -54,6 +54,7 @@ export type Database = {
       admins: {
         Row: {
           id: string
+          auth_user_id: string | null
           name: string
           email: string
           role: string
@@ -62,6 +63,7 @@ export type Database = {
         }
         Insert: {
           id?: string
+          auth_user_id?: string | null
           name: string
           email: string
           role?: string
@@ -70,11 +72,27 @@ export type Database = {
         }
         Update: {
           id?: string
+          auth_user_id?: string | null
           name?: string
           email?: string
           role?: string
           is_active?: boolean
           created_at?: string
+        }
+        Relationships: []
+      }
+      order_daily_counters: {
+        Row: {
+          order_date: string
+          last_value: number
+        }
+        Insert: {
+          order_date: string
+          last_value: number
+        }
+        Update: {
+          order_date?: string
+          last_value?: number
         }
         Relationships: []
       }
@@ -404,7 +422,53 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      create_order_transaction: {
+        Args: {
+          p_admin_id: string
+          p_customer: Json
+          p_discount: number
+          p_items: Json
+          p_notes: string
+          p_payment_method: string
+          p_platform: string
+          p_shipping_fee: number
+        }
+        Returns: {
+          order_id: string
+          order_number: string
+        }[]
+      }
+      adjust_stock_transaction: {
+        Args: {
+          p_admin_id: string
+          p_notes: string
+          p_product_id: string
+          p_qty_change: number
+        }
+        Returns: number
+      }
+      get_low_stock_products: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          id: string
+          low_stock_threshold: number
+          name: string
+          sku: string
+          stock_qty: number
+        }[]
+      }
+      get_customer_order_summaries: {
+        Args: {
+          p_customer_ids: string[]
+        }
+        Returns: {
+          customer_id: string
+          last_order_date: string | null
+          order_count: number
+          recent_orders: Json
+          total_spend: number
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never

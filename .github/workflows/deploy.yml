@@ -14,7 +14,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: "22"
           cache: "npm"
 
       - name: Install dependencies
@@ -30,6 +30,9 @@ jobs:
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           PGBOSS_DATABASE_URL: ${{ secrets.PGBOSS_DATABASE_URL }}
+
+      - name: Build worker
+        run: npm run build:worker
 
       - name: Deploy to VPS
         uses: appleboy/ssh-action@v1
@@ -51,4 +54,4 @@ jobs:
             printf "NEXT_PUBLIC_SUPABASE_ANON_KEY=%s\n" "$SUPABASE_ANON_KEY" >> .env.production
             printf "SUPABASE_SERVICE_ROLE_KEY=%s\n" "$SUPABASE_SERVICE_ROLE_KEY" >> .env.production
             printf "PGBOSS_DATABASE_URL=%s\n" "$PGBOSS_DATABASE_URL" >> .env.production
-            docker compose -f docker-compose.yml up -d --build
+            docker compose --env-file .env.production -f docker-compose.yml up -d --build

@@ -19,6 +19,10 @@
 
 # production
 /build
+/dist
+
+# filesystem artifacts
+.fuse_hidden*
 
 # misc
 .DS_Store

@@ -1,7 +1,7 @@
-import { createServiceClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/server";
 
 export async function getDashboardData() {
-  const supabase = createServiceClient();
+  const supabase = await createClient();
 
   const today = new Date().toISOString().split("T")[0];
   const startOfMonth = today.slice(0, 7) + "-01";

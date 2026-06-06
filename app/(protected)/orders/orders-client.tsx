@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useMemo } from "react";
-import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Plus, Search, X, ChevronRight, Loader2, Trash2 } from "lucide-react";
 import { createOrderAction, updateTrackingAction, updateStatusAction } from "./actions";
 import { toast, confirm } from "@/components/ui/feedback";
 import type { OrderRow } from "@/lib/data/orders";
+import { PaginationControls } from "@/components/ui/pagination-controls";
 
 const fmt = (n: number) =>
   new Intl.NumberFormat("th-TH", { style: "currency", currency: "THB", maximumFractionDigits: 0 }).format(n);
@@ -15,11 +16,11 @@ const PLATFORM_LABEL: Record<string, string> = {
 };
 
 const STATUS_LABEL: Record<string, string> = {
-  pending: "รอส่ง", shipped: "ส่งแล้ว", completed: "เสร็จสิ้น", cancelled: "ยกเลิก",
+  pending: "รอส่ง", confirmed: "ยืนยันแล้ว", shipped: "ส่งแล้ว", delivered: "เสร็จสิ้น", cancelled: "ยกเลิก",
 };
 
 const STATUS_DOT: Record<string, string> = {
-  pending: "bg-amber-400", shipped: "bg-blue-400", completed: "bg-emerald-400", cancelled: "bg-slate-300",
+  pending: "bg-amber-400", confirmed: "bg-violet-400", shipped: "bg-blue-400", delivered: "bg-emerald-400", cancelled: "bg-slate-300",
 };
 
 type Product = { id: string; name: string; sku: string; sell_price: number; cost_price: number; stock_qty: number };
@@ -36,7 +37,7 @@ function CreateOrderModal({ products, onClose }: { products: Product[]; onClose:
   const [shippingFee, setShippingFee] = useState(50);
   const [discount, setDiscount] = useState(0);
   const [notes, setNotes] = useState("");
-  const [items, setItems] = useState<{ product_id: string; product_name: string; qty: number; unit_price: number; unit_cost: number }[]>([]);
+  const [items, setItems] = useState<{ product_id: string; product_name: string; qty: number; unit_price: number }[]>([]);
 
   function addItem(productId: string) {
     const p = products.find((x) => x.id === productId);
@@ -44,7 +45,7 @@ function CreateOrderModal({ products, onClose }: { products: Product[]; onClose:
     setItems((prev) => {
       const existing = prev.find((i) => i.product_id === productId);
       if (existing) return prev.map((i) => i.product_id === productId ? { ...i, qty: i.qty + 1 } : i);
-      return [...prev, { product_id: p.id, product_name: p.name, qty: 1, unit_price: p.sell_price, unit_cost: p.cost_price }];
+      return [...prev, { product_id: p.id, product_name: p.name, qty: 1, unit_price: p.sell_price }];
     });
   }
 
@@ -56,7 +57,15 @@ function CreateOrderModal({ products, onClose }: { products: Product[]; onClose:
     setSaving(true);
     setError("");
     try {
-      await createOrderAction({ customer: { name, phone, address, platform }, items, platform, payment_method: payment, shipping_fee: shippingFee, discount, notes });
+      await createOrderAction({
+        customer: { name, phone, address, platform },
+        items: items.map(({ product_id, qty }) => ({ product_id, qty })),
+        platform,
+        payment_method: payment,
+        shipping_fee: shippingFee,
+        discount,
+        notes,
+      });
       toast.success("สร้างออเดอร์แล้ว");
       onClose();
       router.refresh();
@@ -299,7 +308,7 @@ function OrderPanel({ order, onClose }: { order: OrderRow; onClose: () => void }
             </div>
           )}
 
-          {order.status !== "cancelled" && order.status !== "completed" && (
+          {order.status !== "cancelled" && order.status !== "delivered" && (
             <div className="pt-3 border-t border-pink-100 space-y-2">
               <p className="text-xs text-pink-400 uppercase tracking-wider font-medium">เปลี่ยนสถานะ</p>
               <div className="flex gap-2">
@@ -310,7 +319,7 @@ function OrderPanel({ order, onClose }: { order: OrderRow; onClose: () => void }
                   </button>
                 )}
                 {order.status === "shipped" && (
-                  <button onClick={() => handleStatus("completed")}
+                  <button onClick={() => handleStatus("delivered")}
                     className="flex-1 border border-pink-100 text-muted-foreground py-1.5 rounded-lg text-xs hover:bg-pink-50 transition-colors">
                     เสร็จสิ้น
                   </button>
@@ -328,30 +337,44 @@ function OrderPanel({ order, onClose }: { order: OrderRow; onClose: () => void }
   );
 }
 
-export default function OrdersClient({ orders, products }: { orders: OrderRow[]; products: Product[] }) {
-  const [search, setSearch] = useState("");
-  const [filterStatus, setFilterStatus] = useState("all");
-  const [filterPlatform, setFilterPlatform] = useState("all");
+export default function OrdersClient({
+  orders,
+  products,
+  page,
+  pageCount,
+  total,
+  counts,
+  filters,
+}: {
+  orders: OrderRow[];
+  products: Product[];
+  page: number;
+  pageCount: number;
+  total: number;
+  counts: { pending: number; shipped: number; delivered: number };
+  filters: { search: string; status: string; platform: string };
+}) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const [search, setSearch] = useState(filters.search);
   const [showCreate, setShowCreate] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<OrderRow | null>(null);
 
-  const filtered = useMemo(() => {
-    const q = search.toLowerCase();
-    return orders.filter((o) => {
-      const matchSearch = !q || o.order_number.toLowerCase().includes(q) ||
-        o.customers?.name?.toLowerCase().includes(q) || o.customers?.phone?.includes(q) ||
-        o.tracking_number?.toLowerCase().includes(q);
-      const matchStatus = filterStatus === "all" || o.status === filterStatus;
-      const matchPlat = filterPlatform === "all" || o.platform === filterPlatform;
-      return matchSearch && matchStatus && matchPlat;
-    });
-  }, [orders, search, filterStatus, filterPlatform]);
+  const updateQuery = useCallback((key: string, value: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (!value || value === "all") params.delete(key);
+    else params.set(key, value);
+    params.delete("page");
+    router.replace(`${pathname}?${params.toString()}`);
+  }, [pathname, router, searchParams]);
 
-  const counts = {
-    pending: orders.filter((o) => o.status === "pending").length,
-    shipped: orders.filter((o) => o.status === "shipped").length,
-    completed: orders.filter((o) => o.status === "completed").length,
-  };
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      if (search !== filters.search) updateQuery("search", search);
+    }, 350);
+    return () => clearTimeout(timeout);
+  }, [search, filters.search, updateQuery]);
 
   return (
     <div className="space-y-5 max-w-5xl">
@@ -370,7 +393,7 @@ export default function OrdersClient({ orders, products }: { orders: OrderRow[];
         {[
           { label: "รอส่ง", count: counts.pending, dot: "bg-amber-400" },
           { label: "ส่งแล้ว", count: counts.shipped, dot: "bg-blue-400" },
-          { label: "เสร็จสิ้น", count: counts.completed, dot: "bg-emerald-400" },
+          { label: "เสร็จสิ้น", count: counts.delivered, dot: "bg-emerald-400" },
         ].map(({ label, count, dot }) => (
           <div key={label} className="glass px-4 py-3 flex items-center gap-3">
             <span className={`w-2 h-2 rounded-full shrink-0 ${dot}`} />
@@ -387,14 +410,14 @@ export default function OrdersClient({ orders, products }: { orders: OrderRow[];
             className="w-full pl-8 pr-3 py-1.5 border border-pink-100 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-pink-300 text-foreground placeholder:text-pink-200 bg-white/70" />
         </div>
         <div className="flex gap-0.5 border border-pink-100 rounded-lg p-0.5 bg-white/70">
-          {[["all", "ทั้งหมด"], ["pending", "รอส่ง"], ["shipped", "ส่งแล้ว"], ["completed", "เสร็จ"]].map(([val, label]) => (
-            <button key={val} onClick={() => setFilterStatus(val)}
-              className={`text-xs px-2.5 py-1 rounded-md transition-colors ${filterStatus === val ? "btn-primary" : "text-muted-foreground hover:text-pink-500"}`}>
+          {[["all", "ทั้งหมด"], ["pending", "รอส่ง"], ["shipped", "ส่งแล้ว"], ["delivered", "เสร็จ"]].map(([val, label]) => (
+            <button key={val} onClick={() => updateQuery("status", val)}
+              className={`text-xs px-2.5 py-1 rounded-md transition-colors ${filters.status === val ? "btn-primary" : "text-muted-foreground hover:text-pink-500"}`}>
               {label}
             </button>
           ))}
         </div>
-        <select value={filterPlatform} onChange={(e) => setFilterPlatform(e.target.value)}
+        <select value={filters.platform} onChange={(e) => updateQuery("platform", e.target.value)}
           className="border border-pink-100 rounded-lg px-2.5 py-1.5 text-xs text-muted-foreground focus:outline-none bg-white/70">
           <option value="all">ทุก Platform</option>
           <option value="tiktok">TikTok</option>
@@ -418,9 +441,9 @@ export default function OrdersClient({ orders, products }: { orders: OrderRow[];
             </tr>
           </thead>
           <tbody className="divide-y divide-pink-100">
-            {filtered.length === 0 ? (
+            {orders.length === 0 ? (
               <tr><td colSpan={7} className="text-center py-12 text-xs text-pink-200">ไม่พบรายการ</td></tr>
-            ) : filtered.map((o) => (
+            ) : orders.map((o) => (
               <tr key={o.id} onClick={() => setSelectedOrder(o)} className="hover:bg-pink-50/60 cursor-pointer transition-colors">
                 <td className="px-4 py-3">
                   <p className="text-foreground font-medium">{o.order_number}</p>
@@ -445,6 +468,8 @@ export default function OrdersClient({ orders, products }: { orders: OrderRow[];
           </tbody>
         </table>
       </div>
+
+      <PaginationControls page={page} pageCount={pageCount} total={total} />
 
       {showCreate && <CreateOrderModal products={products} onClose={() => setShowCreate(false)} />}
       {selectedOrder && <OrderPanel order={selectedOrder} onClose={() => setSelectedOrder(null)} />}

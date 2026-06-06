@@ -1,55 +1,81 @@
-import { createServiceClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/server";
+import { throwDatabaseError } from "@/lib/errors/database-error";
+import {
+  createPageResult,
+  escapePostgrestSearch,
+  normalizePageRequest,
+  type PageRequest,
+} from "@/lib/data/pagination";
 
-export async function getProducts() {
-  const supabase = createServiceClient();
-  const { data, error } = await supabase
+export type ProductFilters = PageRequest & {
+  active?: "all" | "active" | "inactive";
+};
+
+export async function getProducts(filters: ProductFilters = {}) {
+  const supabase = await createClient();
+  const pagination = normalizePageRequest(filters);
+  let query = supabase
     .from("products")
-    .select("id, name, sku, category, cost_price, sell_price, stock_qty, low_stock_threshold, is_active, updated_at")
+    .select(
+      "id, name, sku, category, cost_price, sell_price, stock_qty, low_stock_threshold, is_active, updated_at",
+      { count: "exact" }
+    )
     .order("name");
-  if (error) throw error;
-  return data ?? [];
+
+  if (pagination.search) {
+    const pattern = `%${escapePostgrestSearch(pagination.search)}%`;
+    query = query.or(`name.ilike.${pattern},sku.ilike.${pattern}`);
+  }
+  if (filters.active === "active") query = query.eq("is_active", true);
+  if (filters.active === "inactive") query = query.eq("is_active", false);
+
+  const [{ data, error, count }, lowStockResult] = await Promise.all([
+    query.range(pagination.from, pagination.to),
+    supabase.rpc("get_low_stock_products"),
+  ]);
+
+  if (error) throwDatabaseError(error, "getProducts");
+  if (lowStockResult.error) {
+    throwDatabaseError(lowStockResult.error, "getLowStockProducts");
+  }
+
+  return {
+    ...createPageResult(
+      data ?? [],
+      count ?? 0,
+      pagination.page,
+      pagination.limit
+    ),
+    lowStock: lowStockResult.data ?? [],
+  };
 }
 
-export type ProductRow = Awaited<ReturnType<typeof getProducts>>[number];
+export type ProductRow = Awaited<ReturnType<typeof getProducts>>["data"][number];
 
 export async function updateProduct(id: string, input: {
   name?: string;
   sell_price?: number;
   cost_price?: number;
-  stock_qty?: number;
   low_stock_threshold?: number;
   is_active?: boolean;
 }) {
-  const supabase = createServiceClient();
+  const supabase = await createClient();
   const { error } = await supabase.from("products").update(input).eq("id", id);
-  if (error) throw error;
+  if (error) throwDatabaseError(error, "updateProduct");
 }
 
-export async function adjustStock(id: string, qtyChange: number, notes: string) {
-  const supabase = createServiceClient();
-
-  const { data: product, error: pErr } = await supabase
-    .from("products")
-    .select("stock_qty")
-    .eq("id", id)
-    .single();
-  if (pErr) throw pErr;
-
-  const newQty = product.stock_qty + qtyChange;
-  if (newQty < 0) throw new Error("stock ไม่เพียงพอ");
-
-  const { error: uErr } = await supabase
-    .from("products")
-    .update({ stock_qty: newQty })
-    .eq("id", id);
-  if (uErr) throw uErr;
-
-  const { error: mErr } = await supabase.from("inventory_movements").insert({
-    product_id: id,
-    movement_type: qtyChange > 0 ? "restock" : "adjustment",
-    qty_change: qtyChange,
-    qty_after: newQty,
-    notes: notes || null,
+export async function adjustStock(
+  id: string,
+  qtyChange: number,
+  notes: string,
+  adminId: string
+) {
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("adjust_stock_transaction", {
+    p_product_id: id,
+    p_qty_change: qtyChange,
+    p_notes: notes,
+    p_admin_id: adminId,
   });
-  if (mErr) throw mErr;
+  if (error) throwDatabaseError(error, "adjustStockTransaction");
 }

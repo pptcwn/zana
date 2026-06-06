@@ -1,7 +1,8 @@
-import { createServiceClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/server";
+import { throwDatabaseError } from "@/lib/errors/database-error";
 
 export async function getAdSpend(days = 30) {
-  const supabase = createServiceClient();
+  const supabase = await createClient();
   const since = new Date();
   since.setDate(since.getDate() - days);
 
@@ -11,7 +12,7 @@ export async function getAdSpend(days = 30) {
     .gte("spend_date", since.toISOString().slice(0, 10))
     .order("spend_date", { ascending: false });
 
-  if (error) throw error;
+  if (error) throwDatabaseError(error, "getAdSpend");
   return data ?? [];
 }
 
@@ -24,14 +25,16 @@ export async function createAdSpend(input: {
   impressions?: number | null;
   clicks?: number | null;
   notes?: string | null;
-}) {
-  const supabase = createServiceClient();
-  const { error } = await supabase.from("ad_spend").insert(input);
-  if (error) throw error;
+}, adminId: string) {
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("ad_spend")
+    .insert({ ...input, created_by: adminId });
+  if (error) throwDatabaseError(error, "createAdSpend");
 }
 
 export async function deleteAdSpend(id: string) {
-  const supabase = createServiceClient();
+  const supabase = await createClient();
   const { error } = await supabase.from("ad_spend").delete().eq("id", id);
-  if (error) throw error;
+  if (error) throwDatabaseError(error, "deleteAdSpend");
 }

@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useMemo } from "react";
-import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Search, X, ChevronRight, Loader2 } from "lucide-react";
 import { updateCustomerAction } from "./actions";
 import { toast } from "@/components/ui/feedback";
 import type { CustomerRow } from "@/lib/data/customers";
+import { PaginationControls } from "@/components/ui/pagination-controls";
 
 const fmt = (n: number) =>
   new Intl.NumberFormat("th-TH", { style: "currency", currency: "THB", maximumFractionDigits: 0 }).format(n);
@@ -15,7 +16,7 @@ const PLATFORM_LABEL: Record<string, string> = {
 };
 
 const STATUS_LABEL: Record<string, string> = {
-  pending: "รอส่ง", shipped: "ส่งแล้ว", completed: "เสร็จสิ้น", cancelled: "ยกเลิก",
+  pending: "รอส่ง", confirmed: "ยืนยันแล้ว", shipped: "ส่งแล้ว", delivered: "เสร็จสิ้น", cancelled: "ยกเลิก",
 };
 
 function CustomerPanel({ customer, onClose }: { customer: CustomerRow; onClose: () => void }) {
@@ -27,7 +28,7 @@ function CustomerPanel({ customer, onClose }: { customer: CustomerRow; onClose: 
   const [notes, setNotes] = useState(customer.notes ?? "");
   const [saving, setSaving] = useState(false);
 
-  const totalSpend = (customer.orders ?? []).reduce((s, o) => s + o.total_amount, 0);
+  const totalSpend = customer.total_spend;
   const inputCls = "input-luxe";
 
   async function handleSave() {
@@ -55,7 +56,7 @@ function CustomerPanel({ customer, onClose }: { customer: CustomerRow; onClose: 
         <div className="p-5 space-y-5">
           <div className="grid grid-cols-2 gap-3">
             <div className="glass px-4 py-3">
-              <p className="text-xl font-semibold text-foreground">{customer.orders?.length ?? 0}</p>
+              <p className="text-xl font-semibold text-foreground">{customer.order_count}</p>
               <p className="text-xs text-pink-400 mt-0.5">ออเดอร์</p>
             </div>
             <div className="glass px-4 py-3">
@@ -151,19 +152,39 @@ function CustomerPanel({ customer, onClose }: { customer: CustomerRow; onClose: 
   );
 }
 
-export default function CustomersClient({ customers }: { customers: CustomerRow[] }) {
-  const [search, setSearch] = useState("");
-  const [filterPlatform, setFilterPlatform] = useState("all");
+export default function CustomersClient({
+  customers,
+  page,
+  pageCount,
+  total,
+  filters,
+}: {
+  customers: CustomerRow[];
+  page: number;
+  pageCount: number;
+  total: number;
+  filters: { search: string; platform: string };
+}) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const [search, setSearch] = useState(filters.search);
   const [selected, setSelected] = useState<CustomerRow | null>(null);
 
-  const filtered = useMemo(() => {
-    const q = search.toLowerCase();
-    return customers.filter((c) => {
-      const matchSearch = !q || c.name.toLowerCase().includes(q) || c.phone?.includes(q);
-      const matchPlat = filterPlatform === "all" || c.platform === filterPlatform;
-      return matchSearch && matchPlat;
-    });
-  }, [customers, search, filterPlatform]);
+  const updateQuery = useCallback((key: string, value: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (!value || value === "all") params.delete(key);
+    else params.set(key, value);
+    params.delete("page");
+    router.replace(`${pathname}?${params.toString()}`);
+  }, [pathname, router, searchParams]);
+
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      if (search !== filters.search) updateQuery("search", search);
+    }, 350);
+    return () => clearTimeout(timeout);
+  }, [search, filters.search, updateQuery]);
 
   return (
     <div className="space-y-5 max-w-5xl">
@@ -178,7 +199,7 @@ export default function CustomersClient({ customers }: { customers: CustomerRow[
           <input type="text" placeholder="ค้นหาชื่อ, เบอร์..." value={search} onChange={(e) => setSearch(e.target.value)}
             className="w-full pl-8 pr-3 py-1.5 border border-pink-100 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-pink-300 bg-white/70 placeholder:text-pink-200" />
         </div>
-        <select value={filterPlatform} onChange={(e) => setFilterPlatform(e.target.value)}
+        <select value={filters.platform} onChange={(e) => updateQuery("platform", e.target.value)}
           className="border border-pink-100 rounded-lg px-2.5 py-1.5 text-xs text-muted-foreground focus:outline-none bg-white/70">
           <option value="all">ทุก Platform</option>
           <option value="tiktok">TikTok</option>
@@ -201,11 +222,10 @@ export default function CustomersClient({ customers }: { customers: CustomerRow[
             </tr>
           </thead>
           <tbody className="divide-y divide-pink-100">
-            {filtered.length === 0 ? (
+            {customers.length === 0 ? (
               <tr><td colSpan={6} className="text-center py-12 text-xs text-pink-200">ไม่พบลูกค้า</td></tr>
-            ) : filtered.map((c) => {
-              const totalSpend = (c.orders ?? []).reduce((s, o) => s + o.total_amount, 0);
-              const lastOrder = [...(c.orders ?? [])].sort((a, b) => b.invoice_date.localeCompare(a.invoice_date))[0];
+            ) : customers.map((c) => {
+              const lastOrderDate = c.last_order_date;
               return (
                 <tr key={c.id} onClick={() => setSelected(c)} className="hover:bg-pink-50/60 cursor-pointer transition-colors">
                   <td className="px-4 py-3">
@@ -213,10 +233,10 @@ export default function CustomersClient({ customers }: { customers: CustomerRow[
                     <p className="text-xs text-muted-foreground/70">{c.phone ?? "–"}</p>
                   </td>
                   <td className="px-4 py-3 text-xs text-muted-foreground">{PLATFORM_LABEL[c.platform] ?? c.platform}</td>
-                  <td className="px-4 py-3 text-muted-foreground">{c.orders?.length ?? 0}</td>
-                  <td className="px-4 py-3 font-medium text-foreground">{fmt(totalSpend)}</td>
+                  <td className="px-4 py-3 text-muted-foreground">{c.order_count}</td>
+                  <td className="px-4 py-3 font-medium text-foreground">{fmt(c.total_spend)}</td>
                   <td className="px-4 py-3 text-xs text-muted-foreground/70">
-                    {lastOrder ? new Date(lastOrder.invoice_date).toLocaleDateString("th-TH") : "–"}
+                    {lastOrderDate ? new Date(lastOrderDate).toLocaleDateString("th-TH") : "–"}
                   </td>
                   <td className="px-4 py-3"><ChevronRight size={14} className="text-pink-200" /></td>
                 </tr>
@@ -225,6 +245,8 @@ export default function CustomersClient({ customers }: { customers: CustomerRow[
           </tbody>
         </table>
       </div>
+
+      <PaginationControls page={page} pageCount={pageCount} total={total} />
 
       {selected && <CustomerPanel customer={selected} onClose={() => setSelected(null)} />}
     </div>

@@ -2,10 +2,13 @@
   "name": "zana",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "build:worker": "tsc -p tsconfig.worker.json",
     "start": "next start",
+    "start:worker": "node dist/jobs/worker.js",
     "lint": "eslint"
   },
   "dependencies": {

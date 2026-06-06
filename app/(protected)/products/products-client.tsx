@@ -1,14 +1,12 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { X, Loader2, Pencil, Check } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { X, Loader2, Pencil, Check, Search } from "lucide-react";
 import { updateProductAction, adjustStockAction } from "./actions";
 import { toast } from "@/components/ui/feedback";
 import type { ProductRow } from "@/lib/data/products";
-
-const fmt = (n: number) =>
-  new Intl.NumberFormat("th-TH", { style: "currency", currency: "THB", maximumFractionDigits: 0 }).format(n);
+import { PaginationControls } from "@/components/ui/pagination-controls";
 
 function StockModal({ product, onClose }: { product: ProductRow; onClose: () => void }) {
   const [qty, setQty] = useState("1");
@@ -115,18 +113,41 @@ function InlineEdit({ value, onSave }: { value: number; onSave: (v: number) => P
   );
 }
 
-export default function ProductsClient({ products }: { products: ProductRow[] }) {
+export default function ProductsClient({
+  products,
+  lowStock,
+  page,
+  pageCount,
+  total,
+  filters,
+}: {
+  products: ProductRow[];
+  lowStock: Pick<ProductRow, "id" | "name" | "sku" | "stock_qty" | "low_stock_threshold">[];
+  page: number;
+  pageCount: number;
+  total: number;
+  filters: { search: string; active: "all" | "active" | "inactive" };
+}) {
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [stockModal, setStockModal] = useState<ProductRow | null>(null);
-  const [filterActive, setFilterActive] = useState<"all" | "active" | "inactive">("active");
+  const [search, setSearch] = useState(filters.search);
 
-  const filtered = products.filter((p) => {
-    if (filterActive === "active") return p.is_active;
-    if (filterActive === "inactive") return !p.is_active;
-    return true;
-  });
+  const updateQuery = useCallback((key: string, value: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (!value || value === "all") params.delete(key);
+    else params.set(key, value);
+    params.delete("page");
+    router.replace(`${pathname}?${params.toString()}`);
+  }, [pathname, router, searchParams]);
 
-  const lowStock = products.filter((p) => p.is_active && p.stock_qty <= p.low_stock_threshold);
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      if (search !== filters.search) updateQuery("search", search);
+    }, 350);
+    return () => clearTimeout(timeout);
+  }, [search, filters.search, updateQuery]);
 
   return (
     <div className="space-y-5 max-w-5xl">
@@ -142,13 +163,24 @@ export default function ProductsClient({ products }: { products: ProductRow[] })
         </div>
       )}
 
-      <div className="flex gap-0.5 border border-pink-100 rounded-lg p-0.5 bg-white/70 w-fit">
-        {[["active", "ขายอยู่"], ["inactive", "หยุดขาย"], ["all", "ทั้งหมด"]].map(([val, label]) => (
-          <button key={val} onClick={() => setFilterActive(val as typeof filterActive)}
-            className={`text-xs px-2.5 py-1 rounded-md transition-colors ${filterActive === val ? "btn-primary" : "text-muted-foreground hover:text-pink-500"}`}>
-            {label}
-          </button>
-        ))}
+      <div className="flex flex-wrap gap-2 items-center">
+        <div className="relative min-w-48 flex-1">
+          <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-pink-300" />
+          <input
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            placeholder="ค้นหาชื่อสินค้า, SKU..."
+            className="w-full pl-8 pr-3 py-1.5 border border-pink-100 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-pink-300 bg-white/70 placeholder:text-pink-200"
+          />
+        </div>
+        <div className="flex gap-0.5 border border-pink-100 rounded-lg p-0.5 bg-white/70 w-fit">
+          {[["active", "ขายอยู่"], ["inactive", "หยุดขาย"], ["all", "ทั้งหมด"]].map(([val, label]) => (
+            <button key={val} onClick={() => updateQuery("active", val)}
+              className={`text-xs px-2.5 py-1 rounded-md transition-colors ${filters.active === val ? "btn-primary" : "text-muted-foreground hover:text-pink-500"}`}>
+              {label}
+            </button>
+          ))}
+        </div>
       </div>
 
       <div className="glass overflow-x-auto">
@@ -166,9 +198,9 @@ export default function ProductsClient({ products }: { products: ProductRow[] })
             </tr>
           </thead>
           <tbody className="divide-y divide-pink-100">
-            {filtered.length === 0 ? (
+            {products.length === 0 ? (
               <tr><td colSpan={8} className="text-center py-12 text-xs text-pink-200">ไม่พบสินค้า</td></tr>
-            ) : filtered.map((p) => {
+            ) : products.map((p) => {
               const isLow = p.stock_qty <= p.low_stock_threshold;
               return (
                 <tr key={p.id} className="hover:bg-pink-50/60 transition-colors">
@@ -207,6 +239,8 @@ export default function ProductsClient({ products }: { products: ProductRow[] })
           </tbody>
         </table>
       </div>
+
+      <PaginationControls page={page} pageCount={pageCount} total={total} />
 
       {stockModal && <StockModal product={stockModal} onClose={() => { setStockModal(null); router.refresh(); }} />}
     </div>

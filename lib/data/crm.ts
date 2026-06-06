@@ -1,7 +1,8 @@
-import { createServiceClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/server";
+import { throwDatabaseError } from "@/lib/errors/database-error";
 
 export async function getFollowups() {
-  const supabase = createServiceClient();
+  const supabase = await createClient();
 
   const { data, error } = await supabase
     .from("followups")
@@ -19,26 +20,26 @@ export async function getFollowups() {
     `)
     .order("due_date", { ascending: true });
 
-  if (error) throw error;
+  if (error) throwDatabaseError(error, "getFollowups");
   return data ?? [];
 }
 
 export type FollowupRow = Awaited<ReturnType<typeof getFollowups>>[number];
 
 export async function markFollowupDone(id: string, outcome: string) {
-  const supabase = createServiceClient();
+  const supabase = await createClient();
   const { error } = await supabase
     .from("followups")
     .update({ status: "done", outcome, contacted_at: new Date().toISOString() })
     .eq("id", id);
-  if (error) throw error;
+  if (error) throwDatabaseError(error, "markFollowupDone");
 }
 
 export async function skipFollowup(id: string) {
-  const supabase = createServiceClient();
+  const supabase = await createClient();
   const { error } = await supabase
     .from("followups")
     .update({ status: "skipped" })
     .eq("id", id);
-  if (error) throw error;
+  if (error) throwDatabaseError(error, "skipFollowup");
 }
