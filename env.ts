@@ -2,18 +2,24 @@
 import { createEnv } from "@t3-oss/env-nextjs";
 import { z } from "zod";
 
+// Treat empty string (unset GitHub secret) the same as absent
+const optionalSecret = (min: number) =>
+  z.union([z.string().min(min), z.literal(""), z.undefined()]).transform(
+    (v) => (v === "" || v === undefined ? undefined : v)
+  );
+
 export const env = createEnv({
   skipValidation: process.env.SKIP_ENV_VALIDATION === "1",
   server: {
     SUPABASE_SERVICE_ROLE_KEY: z.string().min(1),
     PGBOSS_DATABASE_URL: z.string().url(),
-    TIKTOK_WEBHOOK_SECRET: z.string().min(16).optional(),
-    SHOPEE_WEBHOOK_SECRET: z.string().min(16).optional(),
-    FACEBOOK_WEBHOOK_SECRET: z.string().min(16).optional(),
-    TELEGRAM_BOT_TOKEN: z.string().min(1).optional(),
-    TELEGRAM_WEBHOOK_SECRET: z.string().min(16).optional(),
+    TIKTOK_WEBHOOK_SECRET: optionalSecret(16),
+    SHOPEE_WEBHOOK_SECRET: optionalSecret(16),
+    FACEBOOK_WEBHOOK_SECRET: optionalSecret(16),
+    TELEGRAM_BOT_TOKEN: optionalSecret(1),
+    TELEGRAM_WEBHOOK_SECRET: optionalSecret(16),
     TELEGRAM_DEFAULT_CHAT_ID: z.string().optional(),
-    PLATFORM_CREDENTIALS_ENCRYPTION_KEY: z.string().min(32).optional(),
+    PLATFORM_CREDENTIALS_ENCRYPTION_KEY: optionalSecret(32),
   },
   client: {
     NEXT_PUBLIC_SUPABASE_URL: z.string().url(),
