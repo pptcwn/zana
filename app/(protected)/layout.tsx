@@ -32,6 +32,15 @@ export default async function ProtectedLayout({
             <Link href="/crm" className="text-sm text-slate-600 hover:text-slate-900 transition-colors">
               CRM
             </Link>
+            <Link href="/customers" className="text-sm text-slate-600 hover:text-slate-900 transition-colors">
+              Customers
+            </Link>
+            <Link href="/products" className="text-sm text-slate-600 hover:text-slate-900 transition-colors">
+              Products
+            </Link>
+            <Link href="/ad-spend" className="text-sm text-slate-600 hover:text-slate-900 transition-colors">
+              Ad Spend
+            </Link>
           </div>
         </div>
         <form action={signOut}>

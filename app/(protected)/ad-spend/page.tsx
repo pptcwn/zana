@@ -1,0 +1,15 @@
+import { getAdSpend } from "@/lib/data/adspend";
+import AdSpendClient from "./ad-spend-client";
+
+export default async function AdSpendPage() {
+  const records = await getAdSpend(30);
+  return (
+    <div>
+      <div className="mb-6">
+        <h1 className="text-xl font-semibold text-slate-900">Ad Spend</h1>
+        <p className="text-sm text-slate-500 mt-1">บันทึกค่าโฆษณารายวัน</p>
+      </div>
+      <AdSpendClient records={records} />
+    </div>
+  );
+}
