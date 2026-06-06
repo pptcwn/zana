@@ -55,7 +55,8 @@ function KanbanContent({
       toast.error("ย้ายรายการไม่สำเร็จ ข้อมูลถูกคืนตำแหน่งเดิม");
     },
     onSuccess: (partial, input) => {
-      const previousCard = data[input.entity].find((card) => card.id === input.id);
+      const snapshot = queryClient.getQueryData<KanbanSnapshot>(queryKey);
+      const previousCard = snapshot?.[input.entity].find((card) => card.id === input.id);
       if (!previousCard) return;
       queryClient.setQueryData<KanbanSnapshot>(queryKey, (current) =>
         current

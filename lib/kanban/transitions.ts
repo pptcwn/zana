@@ -26,14 +26,16 @@ export const KANBAN_COLUMNS: Record<KanbanEntity, KanbanColumn[]> = {
   ],
 };
 
+const TERMINAL_STAGES: Partial<Record<KanbanEntity, string[]>> = {
+  order: ["delivered", "cancelled"],
+};
+
 export function canMoveCard(
   entity: KanbanEntity,
   fromStage: string,
   toStage: string
 ) {
   if (fromStage === toStage) return true;
-  if (entity === "order" && ["delivered", "cancelled"].includes(fromStage)) {
-    return false;
-  }
+  if (TERMINAL_STAGES[entity]?.includes(fromStage)) return false;
   return KANBAN_COLUMNS[entity].some((column) => column.id === toStage);
 }
