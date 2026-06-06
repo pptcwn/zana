@@ -19,7 +19,7 @@ export default function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="w-[220px] shrink-0 h-screen sticky top-0 flex flex-col border-r border-pink-100 bg-white">
+    <aside className="w-[220px] shrink-0 h-screen sticky top-0 flex flex-col border-r border-pink-200" style={{ background: "#fff5f7" }}>
       {/* Logo */}
       <div className="px-5 py-5 border-b border-pink-100">
         <span className="text-sm font-semibold tracking-tight text-pink-500">🌸 ZANA</span>
