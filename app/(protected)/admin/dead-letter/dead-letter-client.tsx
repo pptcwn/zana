@@ -73,7 +73,7 @@ export function DeadLetterClient({ events }: { events: DeadLetterEvent[] }) {
             <div className="flex gap-2">
               <button
                 type="button"
-                disabled={pending && working === event.id}
+                disabled={working === event.id}
                 onClick={() => handleReplay(event.id)}
                 className="btn-primary rounded-lg px-3 py-1.5 text-xs disabled:opacity-50"
               >
@@ -81,7 +81,7 @@ export function DeadLetterClient({ events }: { events: DeadLetterEvent[] }) {
               </button>
               <button
                 type="button"
-                disabled={pending && working === event.id}
+                disabled={working === event.id}
                 onClick={() => handleDismiss(event.id)}
                 className="rounded-lg border border-pink-100 bg-white px-3 py-1.5 text-xs text-muted-foreground hover:bg-pink-50 disabled:opacity-50"
               >

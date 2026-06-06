@@ -1,4 +1,6 @@
-create or replace view public.dead_letter_events as
+create or replace view public.dead_letter_events
+  with (security_invoker = true)
+as
 select
   e.id,
   e.platform,
@@ -7,8 +9,7 @@ select
   e.event_type,
   e.attempts,
   e.received_at,
-  e.last_error,
-  e.payload
+  e.last_error
 from public.platform_webhook_events e
 left join public.platform_accounts a on a.id = e.platform_account_id
 where e.processing_status = 'failed';

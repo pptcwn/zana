@@ -23,7 +23,7 @@ export async function replayEventAction(input: z.infer<typeof eventIdSchema>) {
   await boss.send(QUEUES.webhookDispatch, { eventId }, {
     retryLimit: 8,
     retryBackoff: true,
-    singletonKey: `replay-${eventId}-${Date.now()}`,
+    singletonKey: `replay-${eventId}`,
   });
   revalidatePath("/admin/dead-letter");
 }
