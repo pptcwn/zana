@@ -729,6 +729,14 @@ export type Database = {
         }
         Returns: Json
       }
+      rebalance_kanban_column: {
+        Args: {
+          p_entity_type: string
+          p_stage: string
+          p_admin_id: string
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never
